@@ -64,8 +64,8 @@ all: main-build
 main-build: LVTN_STM32F407VET6.elf secondary-outputs
 
 # Tool invocations
-LVTN_STM32F407VET6.elf LVTN_STM32F407VET6.map: $(OBJS) $(USER_OBJS) C:\Users\Xuan\ Truong\STM32CubeIDE\workspace_1.11.0\LVTN_STM32F407VET6\STM32F407VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "LVTN_STM32F407VET6.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Xuan Truong\STM32CubeIDE\workspace_1.11.0\LVTN_STM32F407VET6\STM32F407VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LVTN_STM32F407VET6.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+LVTN_STM32F407VET6.elf LVTN_STM32F407VET6.map: $(OBJS) $(USER_OBJS) C:\Users\Xuan\ Truong\Desktop\LVTN\Working_dir\WORKING_0\source_firmware\STM32\LVTN_STM32F407VET6\STM32F407VETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "LVTN_STM32F407VET6.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Xuan Truong\Desktop\LVTN\Working_dir\WORKING_0\source_firmware\STM32\LVTN_STM32F407VET6\STM32F407VETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LVTN_STM32F407VET6.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

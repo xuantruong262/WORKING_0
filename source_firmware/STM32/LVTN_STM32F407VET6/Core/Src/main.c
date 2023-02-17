@@ -81,7 +81,7 @@ uint32_t rotary_first_value = 0, rotary_curent_value = 0;
 uint32_t lcd_pointer = 0;;
 
 
-float TDS = 500,TDS_THR= 0,PH = 120,PH_THR = 0,Temp = 35.5;
+float TDS = 500,TDS_THR= 0,PH = 300,PH_THR = 0,Temp = 35.5;
 float TDS_SetPoint = 1,TDS_THR_SetPoint = 2,PH_THR_SetPoint = 3,PH_SetPoint = 4;
 uint8_t day = 0, month = 0, hour= 0, minute = 0, second = 0;
 uint16_t year = 0;
