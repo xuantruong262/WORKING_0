@@ -1,0 +1,24 @@
+Server requirment:
+	Màn hình đăng nhập
+	Hiển thị:
+		Dashboard:
+			Hiển thị thông số: 					Temp, TDS, PH
+			Hiển thị dung tích bình dung dịch:	Acid, Base, Nutri A, Nutri B
+			Hiển thị tên người dùng.
+			Hiển thị ID thiết bị.
+			Hiển thị trạng thái kết nối
+		Device:
+			Nếu chưa được đăng kí thiết bị => Chỉ Show màn hình đăng kí thiết bị.
+			Nếu đã được đăng kí:
+				Tab setup ID thiết bị
+				Tab tạo profile cho cây trồng: Gồm - Giá trị đặt TDS , TDS_Thr, PH, PH_Thr, Nutri ratio
+				
+												
+					
+		Charts:
+		About:
+		
+	Log out:
+		
+
+	
