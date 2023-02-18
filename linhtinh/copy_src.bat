@@ -1,0 +1,19 @@
+xcopy /E /Y ..\..\src\ECC_CFLASH_E2_FCC2                     ..\tb\SCHEAPG4\scheapCompile\models_rvc\ECC_CFLASH_E2_FCC2\
+xcopy /E /Y ..\..\src\ECC_CRAM_E2_FCC2                       ..\tb\SCHEAPG4\scheapCompile\models_rvc\ECC_CRAM_E2_FCC2\
+xcopy /E /Y ..\..\src\ECC_DFLASH_E2                     ..\tb\SCHEAPG4\scheapCompile\models_rvc\ECC_DFLASH_E2\
+xcopy /E /Y ..\..\src\ECC_DMADTS_RAM_E2                 ..\tb\SCHEAPG4\scheapCompile\models_rvc\ECC_DMADTS_RAM_E2\
+xcopy /E /Y ..\..\src\ECC_ICACHE_E2_FCC2                     ..\tb\SCHEAPG4\scheapCompile\models_rvc\ECC_ICACHE_E2_FCC2\
+xcopy /E /Y ..\..\src\ECC_LRAM_E2_FCC2                       ..\tb\SCHEAPG4\scheapCompile\models_rvc\ECC_LRAM_E2_FCC2\
+xcopy /E /Y ..\..\src\ECC_PRAM_E2                       ..\tb\SCHEAPG4\scheapCompile\models_rvc\ECC_PRAM_E2\
+xcopy /E /Y ..\..\src\KCPROT_E2                         ..\tb\SCHEAPG4\scheapCompile\models_rvc\KCPROT_E2\
+
+xcopy /E /Y ..\..\src\ECC_CFLASH_E2_FCC2\PY_*                  ..\tb\SCHEAPG4\scheapCompile\build\PYTHON_IF
+xcopy /E /Y ..\..\src\ECC_CRAM_E2_FCC2\PY_*                  ..\tb\SCHEAPG4\scheapCompile\build\PYTHON_IF
+xcopy /E /Y ..\..\src\ECC_DFLASH_E2\PY_*                  ..\tb\SCHEAPG4\scheapCompile\build\PYTHON_IF
+xcopy /E /Y ..\..\src\ECC_DMADTS_RAM_E2\PY_*                  ..\tb\SCHEAPG4\scheapCompile\build\PYTHON_IF
+xcopy /E /Y ..\..\src\ECC_ICACHE_E2_FCC2\PY_*                  ..\tb\SCHEAPG4\scheapCompile\build\PYTHON_IF
+xcopy /E /Y ..\..\src\ECC_LRAM_E2_FCC2\PY_*                  ..\tb\SCHEAPG4\scheapCompile\build\PYTHON_IF
+xcopy /E /Y ..\..\src\ECC_PRAM_E2\PY_*                  ..\tb\SCHEAPG4\scheapCompile\build\PYTHON_IF
+xcopy /E /Y ..\..\src\KCPROT_E2\PY_*                  ..\tb\SCHEAPG4\scheapCompile\build\PYTHON_IF
+xcopy /E /Y ..\tb\SCHEAPG4\scheapCompile\models_rvc\DUMMY_MASTER_RVC\PY_*                  ..\tb\SCHEAPG4\scheapCompile\build\PYTHON_IF
+xcopy /E /Y ..\tb\SCHEAPG4\scheapCompile\models_rvc\DUMMY_PERIPHERAL_RVC\PY_*                  ..\tb\SCHEAPG4\scheapCompile\build\PYTHON_IF
