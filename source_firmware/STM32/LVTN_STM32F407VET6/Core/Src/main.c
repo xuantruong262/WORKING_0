@@ -75,13 +75,10 @@ static void MX_I2C1_Init(void);
 #define SIZEOF_COMMAND 60
 #define UART1_BUFFER_SIZE 1024
 
-uint8_t count;
-uint8_t isPress;
-uint32_t rotary_first_value = 0, rotary_curent_value = 0;
-uint32_t lcd_pointer = 0;;
 
 
-float TDS = 500,TDS_THR= 0,PH = 300,PH_THR = 0,Temp = 35.5;
+
+float TDS = 500,TDS_THR= 0,PH = 300,PH_THR = 0,Temperature = 35.5;
 float TDS_SetPoint = 1,TDS_THR_SetPoint = 2,PH_THR_SetPoint = 3,PH_SetPoint = 4;
 uint8_t day = 0, month = 0, hour= 0, minute = 0, second = 0;
 uint16_t year = 0;
@@ -99,6 +96,12 @@ uint8_t UART1_MAINBUFFER[UART1_BUFFER_SIZE];	//MAIN buffer store data UART1
 //
 //
 /*=====================================UART1=================================*/
+typedef enum
+{
+	Value,
+	Volume
+}Message_type;
+
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
 	memset(UART1_MAINBUFFER,0,strlen((char*)UART1_MAINBUFFER));
@@ -111,9 +114,18 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	HAL_UART_Transmit(&huart1, UART1_MAINBUFFER,strlen((char*)UART1_MAINBUFFER), 500);
 }
 
-void SEND_UART1(uint8_t *String)
+void SEND_UART1(char *String)
 {
 	HAL_UART_Transmit(&huart1,(uint8_t*)String,strlen(String), 500);
+}
+void Handle_value_send(Message_type tp)
+{
+	char msg_send[50];
+	if(tp == Value)
+	{
+		sprintf(msg_send,"R:{s,%.2f,%d,%.2f,e}", PH,(int)TDS,Temperature);
+		SEND_UART1(msg_send);
+	}
 }
 /*=====================================PH,TDS_BEGIN=================================*/
 uint32_t ADC_Value[2] = {0};
@@ -147,9 +159,56 @@ float PH_Calculator(float A, float B, uint32_t adc)
 	}
 
 /*=====================================PH,TDS_END=================================*/
+uint32_t last = 0, pointer_position = 0,Rpush_number = 0,button_flag = 0,Page = 0;
+uint32_t lcd_pointer_1 = 0;
+uint8_t count = 0;
+uint8_t isPress = 0;
+uint32_t rotary_first_value = 0, rotary_curent_value = 0;
+/*=====================================ROTARY_START=================================*/
+void Rotary_init()
+{
+	rotary_first_value = HAL_GPIO_ReadPin(GPIOE, Rotary_CLK_Pin);
+}
 
-uint32_t now =0,last = 0, pointer_position = 0,pointer_2_position =0,Rpush_number =0,button_flag= 0,Page = 0;
-uint32_t lcd_pointer_1;
+uint32_t Rotary_volum()					//Rotary_volume
+{
+	rotary_curent_value = HAL_GPIO_ReadPin(GPIOE, Rotary_CLK_Pin);
+	if (rotary_curent_value != rotary_first_value)
+	   {
+	     if (HAL_GPIO_ReadPin(GPIOE, Rotary_DT_Pin) != rotary_curent_value)
+	     {
+	    	 lcd_clear();
+	    	 lcd_pointer_1 +=1;
+
+	     }
+	     else
+	     {
+	    	 lcd_clear();
+	    	 lcd_pointer_1 -=1;
+	     }
+	   }
+	rotary_first_value = rotary_curent_value;
+	return lcd_pointer_1;
+}
+
+void Push_Slect()						//Rotary_button
+{
+	  if(HAL_GPIO_ReadPin(GPIOE, Rotary_SW_Pin) == 0)
+	  		{
+	  			HAL_Delay(20);
+	  			if((HAL_GPIO_ReadPin(GPIOE, Rotary_SW_Pin) == 0) && (isPress == 0)) // nut nhan da bam
+	  			{
+	  				lcd_clear();
+	  				Rpush_number++;
+	  				isPress = 1;
+	  				button_flag = 0;
+	  			}
+	  		}
+	  		else{isPress = 0;}
+}
+
+/*=====================================ROTARY_END=================================*/
+/*=====================================LCD_START=================================*/
 typedef enum
 {
 	Down,
@@ -157,7 +216,7 @@ typedef enum
 	NoChange
 }Pointer_state;
 
-typedef enum
+typedef enum							//LCD_OPTION_PAGE_1
 {
 	Page_0,
 	Page_1,
@@ -169,7 +228,7 @@ typedef enum
 	Page1_Nothing
 }Page1;
 
-typedef enum
+typedef enum							//LCD_OPTION_PAGE_2
 {
 	Page2_ph,
 	Page2_ph_thr,
@@ -195,57 +254,9 @@ typedef enum
 
 }Value_Setype;
 
-/*=====================================ROTARY_START=================================*/
-void Rotary_init()
-{
-	rotary_first_value = HAL_GPIO_ReadPin(GPIOE, Rotary_CLK_Pin);
-}
-uint32_t Rotary_volum()
-{
-
-	rotary_curent_value = HAL_GPIO_ReadPin(GPIOE, Rotary_CLK_Pin);
-	if (rotary_curent_value != rotary_first_value)
-	   {
-	     if (HAL_GPIO_ReadPin(GPIOE, Rotary_DT_Pin) != rotary_curent_value)
-	     {
-	    	 lcd_clear();
-	    	 lcd_pointer_1 +=1;
-
-	     }
-	     else
-	     {
-	    	 lcd_clear();
-	    	 lcd_pointer_1 -=1;
-	     }
-	   }
-	rotary_first_value = rotary_curent_value;
-	return lcd_pointer_1;
-}
-void Push_Slect()
-{
-	  if(HAL_GPIO_ReadPin(GPIOE, Rotary_SW_Pin) == 0)
-	  		{
-	  			HAL_Delay(20);
-	  			if((HAL_GPIO_ReadPin(GPIOE, Rotary_SW_Pin) == 0) && (isPress == 0)) // nut nhan da bam
-	  			{
-	  				lcd_clear();
-	  				Rpush_number++;
-	  				isPress = 1;
-	  				button_flag = 0;
-//	  				if(Rpush_number > 1)
-//	  				{
-//	  					Rpush_number = 0;
-//	  				}
-	  			}
-	  		}
-	  		else{isPress = 0;}
-}
-
-/*=====================================ROTARY_END=================================*/
-/*=====================================LCD_START=================================*/
 Page1 option_page_1 = Page1_Nothing;
 Page2 option_page_2 = Page2_Nothing;
-void Pointer_Status(uint32_t volume)
+void Pointer_Status(uint32_t volume)	//Pointer_1_display_location
 {
 	if(volume > last)
 	{
@@ -293,10 +304,7 @@ void Pointer_Status(uint32_t volume)
 			break;
 	}
 }
-
-
-
-void Pointer_2_Status(uint32_t line)
+void Pointer_2_Status(uint32_t line)	//Pointer_2_display_location
 {
 	if(line == 0)
 	{
@@ -322,7 +330,7 @@ void Pointer_2_Status(uint32_t line)
 	}
 }
 
-void LCD_Menu_2_1() // Menu SetPoint
+void LCD_Menu_2_1() 					//Menu SetPoint
 {
 	char buffer_string[100];
 	lcd_send_cmd(0x80 | 0x02); //PH
@@ -358,7 +366,7 @@ void LCD_Menu_2_1() // Menu SetPoint
 	strcpy(buffer_string,0);
 }
 
-void LCD_Menu_2_2() // Menu Testing
+void LCD_Menu_2_2() 					// Menu Testing
 {
 	char buffer_string[100];
 	lcd_send_cmd(0x80 | 0x02); //PH
@@ -372,7 +380,7 @@ void LCD_Menu_2_2() // Menu Testing
 
 }
 
-void LCD_Menu_2_3() // Menu Calib
+void LCD_Menu_2_3() 					// Menu Calibration
 {
 	char buffer_string[100];
 	lcd_send_cmd(0x80 | 0x02); //PH
@@ -383,7 +391,7 @@ void LCD_Menu_2_3() // Menu Calib
 
 }
 
-void LCD_Menu_2_4() // Menu Wifi_Config
+void LCD_Menu_2_4() 					// Menu Wifi_Config
 {
 	char buffer_string[100];
 	lcd_send_cmd(0x80 | 0x02); //PH
@@ -395,7 +403,7 @@ void LCD_Menu_2_4() // Menu Wifi_Config
 	lcd_send_cmd(0x80 | 0x56); //PH
 	lcd_send_string("End");
 }
-void LCD_Menu_1()   // Menu Select
+void LCD_Menu_1()   					// Menu Select_config
 {
 	lcd_send_cmd(0x80 | 0x02);
 	lcd_send_string("Set point");
@@ -407,7 +415,7 @@ void LCD_Menu_1()   // Menu Select
 	lcd_send_string("Wifi Config");
 }
 
-void LCD_Normal_Mode() // Default Page
+void LCD_Normal_Mode() 					// Home Page
 {
 	char PH_String[100];
 	sprintf(PH_String,"PH  :%.2f   ",PH);
@@ -420,7 +428,7 @@ void LCD_Normal_Mode() // Default Page
 	lcd_send_string(PH_String);
 	strcpy(PH_String,0);
 
-	sprintf(PH_String,"TEMP:%.2f   ",Temp);
+	sprintf(PH_String,"TEMP:%.2f   ",Temperature);
 	lcd_send_cmd(0x80 | 0x17); //PH
 	lcd_send_string(PH_String);
 	strcpy(PH_String,0);
@@ -428,7 +436,7 @@ void LCD_Normal_Mode() // Default Page
 	lcd_send_string("PRESS TO CONFIG MODE");
 }
 
-void LCD_Display()
+void LCD_Display()						// Display_LCD
 {
 	{
 	Push_Slect();
@@ -595,17 +603,16 @@ void LCD_Display()
 				  if(option_page_2 == Page2_ph)
 				  {
 					  lcd_pointer_1 = PH_SetPoint;
-						while(Rpush_number == 3)
+						while(Rpush_number == 3) 		// Setting setpoint for PH
 							{
 											LCD_Menu_2_1();
 											Push_Slect();
 											Pointer_2_Status(0);
 											PH_SetPoint = Rotary_volum();
-
 							}
 
 				  }
-				  else if(option_page_2== Page2_ph_thr)
+				  else if(option_page_2== Page2_ph_thr) // Setting setpoint for PH_THR
 				  {
 					  lcd_pointer_1 = PH_THR_SetPoint;
 						while(Rpush_number== 3)
@@ -617,7 +624,7 @@ void LCD_Display()
 							}
 
 				  }
-				  else if(option_page_2==Page2_tds)
+				  else if(option_page_2==Page2_tds)		// Setting setpoint for TDS
 				  {
 					  lcd_pointer_1 = TDS_SetPoint;
 						while(Rpush_number== 3)
@@ -629,7 +636,7 @@ void LCD_Display()
 							}
 
 				  }
-				  else if(option_page_2==Page2_tds_thr)
+				  else if(option_page_2==Page2_tds_thr)	// Setting setpoint for TDS_thr
 				  {
 					    lcd_pointer_1 = TDS_THR_SetPoint;
 						while(Rpush_number == 3)
@@ -640,7 +647,7 @@ void LCD_Display()
 											TDS_THR_SetPoint = Rotary_volum();
 						}
 				  }
-				  else if(option_page_2 == Page2_Back)
+				  else if(option_page_2 == Page2_Back)	//Back option
 				  {
 					  Page = 1;
 					  Rpush_number = 1;
@@ -648,10 +655,8 @@ void LCD_Display()
 					  option_page_2 = Page2_Nothing;
 					  lcd_clear();
 				  }
-
-
 			}
-
+/*case 2 TESTING:*/
 			else if(option_page_1 == Page1_Testing) // Display with option testing
 			{
 				LCD_Menu_2_2();
@@ -680,6 +685,7 @@ void LCD_Display()
 					  lcd_clear();
 				  }
 			}
+/*case 2 CALIBRATION:*/
 			else if(option_page_1 == Page1_Calbration_sensor) // Display with calibration
 			{
 					LCD_Menu_2_3();
@@ -692,7 +698,6 @@ void LCD_Display()
 											Pointer_2_Status(0);
 											lcd_send_cmd(0x80|0x16);
 											lcd_send_string("Please put sensor into PH7 or PH4");
-
 						}
 					}
 					else if(option_page_2 == Page2_calib_tds)
@@ -707,6 +712,7 @@ void LCD_Display()
 					  option_page_2 = Page2_Nothing;
 					  lcd_clear();}
 			}
+/*case 2 WIFI_CONFIG:*/
 			else if(option_page_1 == Page1_WifiConfig)
 			{
 				LCD_Menu_2_4();
@@ -733,7 +739,6 @@ void LCD_Display()
 			break;
 	}
 }
-
 
 /*=====================================LCD_END=================================*/
 
@@ -796,9 +801,13 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
-
     /* USER CODE BEGIN 3 */
+	  PH++;
+	  TDS++;
+	  Temperature++;
 	  LCD_Display();
+	  Handle_value_send(Value);
+	  HAL_Delay(5000);
 
   }
   /* USER CODE END 3 */

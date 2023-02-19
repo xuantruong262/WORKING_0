@@ -32,7 +32,7 @@ void GET_VALUE_FROM_ESP32(char string[])
     first = strstr(string,"{");
     token = strtok((char*)first+1,",");
     printf("%s\n",token);
-    if(string[0] == 'S')
+    if(string[0] == 'S')		//Setpoint
     {
          while( token != NULL )
           {
