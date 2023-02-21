@@ -54,10 +54,17 @@ void filt_data()
 void loop() {
  // put your main code here, to run repeatedly:
   MQTT_loop();
-  if(Serial2.available())
-  {
-    str = Serial2.readString();   
-    filt_data();
-    publish_data();
-  }
+  // if(Serial2.available())
+  // {
+  //   str = Serial2.readString();   
+  //   filt_data();
+  //   publish_data();
+  // }
+  PH++;
+  TDS++;
+  temperature++;
+  publish_data();
+  delay(5000);
+
+
 } 

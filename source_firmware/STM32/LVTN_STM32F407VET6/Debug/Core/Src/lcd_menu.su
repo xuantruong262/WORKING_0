@@ -1,0 +1,12 @@
+../Core/Src/lcd_menu.c:26:6:Rotary_init	8	static
+../Core/Src/lcd_menu.c:30:6:Rotary_volum	8	static
+../Core/Src/lcd_menu.c:50:6:Push_Slect	8	static
+../Core/Src/lcd_menu.c:65:6:Pointer_Status	16	static
+../Core/Src/lcd_menu.c:113:6:Pointer_2_Status	16	static
+../Core/Src/lcd_menu.c:138:6:LCD_Menu_2_1	112	static
+../Core/Src/lcd_menu.c:173:6:LCD_Menu_2_2	8	static
+../Core/Src/lcd_menu.c:184:6:LCD_Menu_2_3	8	static
+../Core/Src/lcd_menu.c:192:6:LCD_Menu_2_4	8	static
+../Core/Src/lcd_menu.c:203:6:LCD_Menu_1	8	static
+../Core/Src/lcd_menu.c:214:6:LCD_Normal_Mode	112	static
+../Core/Src/lcd_menu.c:234:6:LCD_Display	16	static

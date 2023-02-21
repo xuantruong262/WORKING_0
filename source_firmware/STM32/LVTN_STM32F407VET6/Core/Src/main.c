@@ -26,6 +26,8 @@
 #include "common.h"
 #include "i2c-lcd.h"
 #include <stdio.h>
+#include "w25qxx.h"
+#include "lcd_menu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,7 +50,11 @@ DMA_HandleTypeDef hdma_adc1;
 
 I2C_HandleTypeDef hi2c1;
 
+IWDG_HandleTypeDef hiwdg;
+
 SPI_HandleTypeDef hspi1;
+
+TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
@@ -65,6 +71,8 @@ static void MX_USART1_UART_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_TIM4_Init(void);
+static void MX_IWDG_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -76,10 +84,8 @@ static void MX_I2C1_Init(void);
 #define UART1_BUFFER_SIZE 1024
 
 
-
-
 float TDS = 500,TDS_THR= 0,PH = 300,PH_THR = 0,Temperature = 35.5;
-float TDS_SetPoint = 1,TDS_THR_SetPoint = 2,PH_THR_SetPoint = 3,PH_SetPoint = 4;
+float TDS_SetPoint = 0,TDS_THR_SetPoint = 0,PH_THR_SetPoint = 0,PH_SetPoint = 0;
 uint8_t day = 0, month = 0, hour= 0, minute = 0, second = 0;
 uint16_t year = 0;
 float   esp32_stm32_SetPoint[] = {0};
@@ -128,7 +134,7 @@ void Handle_value_send(Message_type tp)
 	}
 }
 /*=====================================PH,TDS_BEGIN=================================*/
-uint32_t ADC_Value[2] = {0};
+uint16_t ADC_Value[2] = {0};
 float 	a = 0,b = 0;
 void PH_Calibration()
 {
@@ -140,7 +146,6 @@ void PH_Calibration()
 	  {
 	      CALIB_ADC_PH_7 = value_calib[0];
 	      CALIB_ADC_PH_4 = CALIB_ADC_PH_7 + 110;
-
 	    }
 	    else if(value_calib[0] < 2100 && value_calib[0] > 2060)
 	    {
@@ -159,588 +164,52 @@ float PH_Calculator(float A, float B, uint32_t adc)
 	}
 
 /*=====================================PH,TDS_END=================================*/
-uint32_t last = 0, pointer_position = 0,Rpush_number = 0,button_flag = 0,Page = 0;
-uint32_t lcd_pointer_1 = 0;
-uint8_t count = 0;
-uint8_t isPress = 0;
-uint32_t rotary_first_value = 0, rotary_curent_value = 0;
-/*=====================================ROTARY_START=================================*/
-void Rotary_init()
-{
-	rotary_first_value = HAL_GPIO_ReadPin(GPIOE, Rotary_CLK_Pin);
-}
 
-uint32_t Rotary_volum()					//Rotary_volume
-{
-	rotary_curent_value = HAL_GPIO_ReadPin(GPIOE, Rotary_CLK_Pin);
-	if (rotary_curent_value != rotary_first_value)
-	   {
-	     if (HAL_GPIO_ReadPin(GPIOE, Rotary_DT_Pin) != rotary_curent_value)
-	     {
-	    	 lcd_clear();
-	    	 lcd_pointer_1 +=1;
 
-	     }
-	     else
-	     {
-	    	 lcd_clear();
-	    	 lcd_pointer_1 -=1;
-	     }
-	   }
-	rotary_first_value = rotary_curent_value;
-	return lcd_pointer_1;
-}
 
-void Push_Slect()						//Rotary_button
-{
-	  if(HAL_GPIO_ReadPin(GPIOE, Rotary_SW_Pin) == 0)
-	  		{
-	  			HAL_Delay(20);
-	  			if((HAL_GPIO_ReadPin(GPIOE, Rotary_SW_Pin) == 0) && (isPress == 0)) // nut nhan da bam
-	  			{
-	  				lcd_clear();
-	  				Rpush_number++;
-	  				isPress = 1;
-	  				button_flag = 0;
-	  			}
-	  		}
-	  		else{isPress = 0;}
-}
 
-/*=====================================ROTARY_END=================================*/
-/*=====================================LCD_START=================================*/
-typedef enum
+void Save_SetPoint(Save_Flash_Type tp)
 {
-	Down,
-	Up,
-	NoChange
-}Pointer_state;
-
-typedef enum							//LCD_OPTION_PAGE_1
-{
-	Page_0,
-	Page_1,
-	Page1_SetPoint,
-	Page1_Testing,
-	Page1_Calbration_sensor,
-	Page1_WifiConfig,
-	Page1_Back,
-	Page1_Nothing
-}Page1;
-
-typedef enum							//LCD_OPTION_PAGE_2
-{
-	Page2_ph,
-	Page2_ph_thr,
-	Page2_tds,
-	Page2_tds_thr,
-	Page2_pump_1,
-	Page2_pump_2,
-	Page2_pump_3,
-	Page2_pump_4,
-	Page2_calib_ph,
-	Page2_calib_tds,
-	Page2_start,
-	Page2_end,
-	Page2_Back,
-	Page2_Nothing
-}Page2;
-typedef enum
-{
-	Sph,
-	Sph_phr,
-	Stds,
-	Stds_phr
-
-}Value_Setype;
-
-Page1 option_page_1 = Page1_Nothing;
-Page2 option_page_2 = Page2_Nothing;
-void Pointer_Status(uint32_t volume)	//Pointer_1_display_location
-{
-	if(volume > last)
+	if(tp == flash_setpoint)
 	{
-		pointer_position++;
+		W25qxx_EraseSector(1);
+		W25qxx_EraseSector(2);
+		W25qxx_EraseSector(3);
+		W25qxx_EraseSector(4);
+		W25qxx_WriteSector(&PH_SetPoint, 1, 0, 4);
+		W25qxx_WriteSector(&PH_THR_SetPoint, 2, 0, 4);
+		W25qxx_WriteSector(&TDS_SetPoint, 3, 0, 4);
+		W25qxx_WriteSector(&TDS_THR_SetPoint, 4, 0, 4);
 	}
-	else if(volume < last)
+	else if(tp ==flash_calibration)
 	{
-		pointer_position--;
-	}
-	last = volume;
-
-	switch(pointer_position)
-	{
-		case 0:
-			lcd_send_cmd(0x80 | 0x00); //PH
-			lcd_send_string("->");
-			break;
-		case 2:
-			lcd_send_cmd(0x80 | 0x40); //PH
-			lcd_send_string("->");
-			break;
-		case 4:
-			lcd_send_cmd(0x80 | 0x14); //PH
-			lcd_send_string("->");
-			break;
-		case 6:
-			lcd_send_cmd(0x80 | 0x54); //PH
-			lcd_send_string("->");
-			break;
-		case 8:
-			if(Rpush_number == 2||3)
-			{
-				lcd_send_cmd(0x80 | 0x66);
-				lcd_send_string(">>");
-			}
-			break;
-
-		default:
-			if(pointer_position>9)
-			{
-				pointer_position = 0;
-				lcd_send_cmd(0x80 | 0x00); //PH
-				lcd_send_string("->");
-			}
-			break;
-	}
-}
-void Pointer_2_Status(uint32_t line)	//Pointer_2_display_location
-{
-	if(line == 0)
-	{
-	lcd_send_cmd(0x80 | 0x0A); //PH
-	lcd_send_string("<");
-	}
-	else if(line == 2)
-	{
-	lcd_send_cmd(0x80 | 0x4A); //PH
-	lcd_send_string("<");
+		W25qxx_EraseSector(5);
+		W25qxx_EraseSector(6);
+		W25qxx_WriteSector(&PH_SetPoint, 5, 0, 4);
+		W25qxx_WriteSector(&PH_SetPoint, 6, 0, 4);
 	}
 
-	else if(line == 4)
-	{
-	lcd_send_cmd(0x80 | 0x1E); //PH
-	lcd_send_string("<");
-	}
-
-	else if(line == 6)
-	{
-	lcd_send_cmd(0x80 | 0x5E); //PH
-	lcd_send_string("<");
-	}
 }
-
-void LCD_Menu_2_1() 					//Menu SetPoint
+void Read_SetPoint()
 {
-	char buffer_string[100];
-	lcd_send_cmd(0x80 | 0x02); //PH
-	lcd_send_string("PH:");
-	lcd_send_cmd(0x80 | 0x42); //PH
-	lcd_send_string("PH_Thr:");
-	lcd_send_cmd(0x80 | 0x16); //PH
-	lcd_send_string("TDS:");
-	lcd_send_cmd(0x80 | 0x56); //PH
-	lcd_send_string("TDS_Thr:");
-
-
-	lcd_send_cmd(0x80 | 0x0B); //PH_Setpoint
-	sprintf(buffer_string,"%.2f",PH_SetPoint);
-	lcd_send_string(buffer_string);
-	strcpy(buffer_string,0);
-
-
-	lcd_send_cmd(0x80 | 0x4B); //PH_THR_Setpoint
-	sprintf(buffer_string,"%.2f",PH_THR_SetPoint);
-	lcd_send_string(buffer_string);
-	strcpy(buffer_string,0);
-
-	lcd_send_cmd(0x80 | 0x1F); //TDS_Setpoint
-	sprintf(buffer_string,"%.2f",TDS_SetPoint);
-	lcd_send_string(buffer_string);
-	strcpy(buffer_string,0);
-
-
-	lcd_send_cmd(0x80 | 0x5F); //TDS_THR_Setpoint
-	sprintf(buffer_string,"%.2f",TDS_THR_SetPoint);
-	lcd_send_string(buffer_string);
-	strcpy(buffer_string,0);
+	W25qxx_ReadSector(&PH_SetPoint, 1, 0, 4);
+	W25qxx_ReadSector(&PH_THR_SetPoint, 2, 0, 4);
+	W25qxx_ReadSector(&TDS_SetPoint, 3, 0, 4);
+	W25qxx_ReadSector(&TDS_THR_SetPoint, 4, 0, 4);
 }
 
-void LCD_Menu_2_2() 					// Menu Testing
+/*=====================================Interrupt_Start=========================*/
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	char buffer_string[100];
-	lcd_send_cmd(0x80 | 0x02); //PH
-	lcd_send_string("Pump 1:");
-	lcd_send_cmd(0x80 | 0x42); //PH
-	lcd_send_string("Pump 2:");
-	lcd_send_cmd(0x80 | 0x16); //PH
-	lcd_send_string("Pump 3:");
-	lcd_send_cmd(0x80 | 0x56); //PH
-	lcd_send_string("Pump 4:");
-
+	 if(htim->Instance == htim4.Instance)
+	 {
+	   HAL_GPIO_TogglePin(test_pin_GPIO_Port,test_pin_Pin);
+	   lcd_clear();
+	 }
 }
-
-void LCD_Menu_2_3() 					// Menu Calibration
-{
-	char buffer_string[100];
-	lcd_send_cmd(0x80 | 0x02); //PH
-	lcd_send_string("PH:");
-	lcd_send_cmd(0x80 | 0x42); //PH
-	lcd_send_string("TDS:");
-	lcd_send_cmd(0x80 | 0x16); //PH
-
-}
-
-void LCD_Menu_2_4() 					// Menu Wifi_Config
-{
-	char buffer_string[100];
-	lcd_send_cmd(0x80 | 0x02); //PH
-	lcd_send_string("Go to the link:");
-	lcd_send_cmd(0x80 | 0x42); //PH
-	lcd_send_string("setupwifi.com.vn");
-	lcd_send_cmd(0x80 | 0x16); //PH
-	lcd_send_string("Start");
-	lcd_send_cmd(0x80 | 0x56); //PH
-	lcd_send_string("End");
-}
-void LCD_Menu_1()   					// Menu Select_config
-{
-	lcd_send_cmd(0x80 | 0x02);
-	lcd_send_string("Set point");
-	lcd_send_cmd(0x80 | 0x42);
-	lcd_send_string("Testing");
-	lcd_send_cmd(0x80 | 0x16);
-	lcd_send_string("Calibration sensor");
-	lcd_send_cmd(0x80 | 0x56);
-	lcd_send_string("Wifi Config");
-}
-
-void LCD_Normal_Mode() 					// Home Page
-{
-	char PH_String[100];
-	sprintf(PH_String,"PH  :%.2f   ",PH);
-	lcd_send_cmd(0x80 | 0x03); //PH
-	lcd_send_string(PH_String);
-	strcpy(PH_String,0);
-
-	sprintf(PH_String,"TDS :%.0f   ",TDS);
-	lcd_send_cmd(0x80 | 0x43); //PH
-	lcd_send_string(PH_String);
-	strcpy(PH_String,0);
-
-	sprintf(PH_String,"TEMP:%.2f   ",Temperature);
-	lcd_send_cmd(0x80 | 0x17); //PH
-	lcd_send_string(PH_String);
-	strcpy(PH_String,0);
-	lcd_send_cmd(0x80 | 0x54); //PH
-	lcd_send_string("PRESS TO CONFIG MODE");
-}
-
-void LCD_Display()						// Display_LCD
-{
-	{
-	Push_Slect();
-	if(Rpush_number == 0)
-	{
-		Page = 0;
-	}
-	else if(Rpush_number == 1)
-	{
-		Page = 1;
-	}
-	else if(Rpush_number == 2)
-	{
-		if(button_flag ==0)
-		{
-			switch(pointer_position)
-		  {
-			case 0:
-				option_page_1 = Page1_SetPoint;
-				Page = 2;
-				break;
-			case 2:
-				option_page_1 = Page1_Testing;
-				Page = 2;
-				break;
-			case 4:
-				option_page_1 = Page1_Calbration_sensor;
-				Page = 2;
-				break;
-			case 6:
-				option_page_1 = Page1_WifiConfig;
-				Page = 2;
-				break;
-			case 8:
-				option_page_1 = Page1_Back;
-				Page = 0;
-				Rpush_number = 0;
-				break;
-			default:
-				break;
-			}
-			button_flag =1;
-		}
-	}
-	else if(Rpush_number == 3)
-	{
-			// OPTION SETPOINT AT PAGE 1
-			if(option_page_1 == Page1_SetPoint)
-			{
-				if(pointer_position == 0)
-				{
-					option_page_2 = Page2_ph;
-				}
-				else if(pointer_position == 2)
-				{
-					option_page_2 = Page2_ph_thr;
-				}
-				else if(pointer_position == 4)
-				{
-					option_page_2 = Page2_tds;
-				}
-				else if(pointer_position == 6)
-				{
-					option_page_2 = Page2_tds_thr;
-				}
-				else if(pointer_position == 8)
-				{
-					option_page_2 = Page2_Back;
-				}
-
-			}
-			//// OPTION TESTING AT PAGE 1
-			else if (option_page_1 ==Page1_Testing)
-			{
-				if(pointer_position == 0)
-				{
-					option_page_2 = Page2_pump_1;
-				}
-				else if(pointer_position == 2)
-				{
-					option_page_2 = Page2_pump_2;
-				}
-				else if(pointer_position == 4)
-				{
-					option_page_2 = Page2_pump_3;
-				}
-				else if(pointer_position == 6)
-				{
-					option_page_2 = Page2_pump_4;
-				}
-				else if(pointer_position == 8)
-				{
-					option_page_2 = Page2_Back;
-				}
-
-			}
-			///// OPTION CALIB AT PAGE 1
-			else if(option_page_1 == Page1_Calbration_sensor)
-			{
-
-				if(pointer_position == 0)
-				{
-					option_page_2 = Page2_calib_ph;
-				}
-				else if(pointer_position == 2)
-				{
-					option_page_2 = Page2_calib_tds;
-				}
-				else if(pointer_position == 8)
-				{
-					option_page_2 = Page2_Back;
-				}
-
-			}
-			///OPTION WIFICONFIG PAGE 1
-			else if(option_page_1 == Page1_WifiConfig)
-			{
-				if(pointer_position == 4)
-				{
-					option_page_2 = Page2_start;
-				}
-				else if(pointer_position == 6)
-				{
-					option_page_2 = Page2_end;
-				}
-				else if(pointer_position == 8)
-				{
-					option_page_2 = Page2_Back;
-				}
-
-			}
+/*=====================================Interrupt_End=========================*/
 
 
-		}
-		else if(Rpush_number == 4)  // Only for Set up value
-		{
-			if(option_page_1 == Page1_SetPoint)
-			{
-				option_page_2 = Page2_Nothing;
-				Rpush_number = 2;
-				button_flag = 1;
-				pointer_position = pointer_position + 1;
-				lcd_clear();
-			}
-		}
-	}
-
-	switch(Page)
-	{
-		case 0:									//Page 0 display
-			LCD_Normal_Mode();
-			break;
-		case 1: 								//Page 1 display
-			Pointer_Status(Rotary_volum());
-			LCD_Menu_1(Rotary_volum());
-			break;
-		case 2: 								//Page 2 display
-			Pointer_Status(Rotary_volum());
-			//DISPLAY WITH OPTION SETPOINT
-/*case 2 SETPOINT:*/
-			if(option_page_1 == Page1_SetPoint)
-			{
-				  LCD_Menu_2_1();
-				  if(option_page_2 == Page2_ph)
-				  {
-					  lcd_pointer_1 = PH_SetPoint;
-						while(Rpush_number == 3) 		// Setting setpoint for PH
-							{
-											LCD_Menu_2_1();
-											Push_Slect();
-											Pointer_2_Status(0);
-											PH_SetPoint = Rotary_volum();
-							}
-
-				  }
-				  else if(option_page_2== Page2_ph_thr) // Setting setpoint for PH_THR
-				  {
-					  lcd_pointer_1 = PH_THR_SetPoint;
-						while(Rpush_number== 3)
-							{
-											LCD_Menu_2_1();
-											Push_Slect();
-											Pointer_2_Status(2);
-											PH_THR_SetPoint =  Rotary_volum();
-							}
-
-				  }
-				  else if(option_page_2==Page2_tds)		// Setting setpoint for TDS
-				  {
-					  lcd_pointer_1 = TDS_SetPoint;
-						while(Rpush_number== 3)
-							{
-											LCD_Menu_2_1();
-											Push_Slect();
-											Pointer_2_Status(4);
-											TDS_SetPoint = Rotary_volum();
-							}
-
-				  }
-				  else if(option_page_2==Page2_tds_thr)	// Setting setpoint for TDS_thr
-				  {
-					    lcd_pointer_1 = TDS_THR_SetPoint;
-						while(Rpush_number == 3)
-						{
-											LCD_Menu_2_1();
-											Push_Slect();
-											Pointer_2_Status(6);
-											TDS_THR_SetPoint = Rotary_volum();
-						}
-				  }
-				  else if(option_page_2 == Page2_Back)	//Back option
-				  {
-					  Page = 1;
-					  Rpush_number = 1;
-					  button_flag = 0;
-					  option_page_2 = Page2_Nothing;
-					  lcd_clear();
-				  }
-			}
-/*case 2 TESTING:*/
-			else if(option_page_1 == Page1_Testing) // Display with option testing
-			{
-				LCD_Menu_2_2();
-				  if(option_page_2 == Page2_pump_1)
-				  {
-
-				  }
-				  else if(option_page_2== Page2_pump_2)
-				  {
-
-				  }
-				  else if(option_page_2==Page2_pump_3)
-				  {
-
-				  }
-				  else if(option_page_2==Page2_pump_4)
-				  {
-
-				  }
-				  else if(option_page_2 == Page2_Back)
-				  {
-					  Page = 1;
-					  Rpush_number = 1;
-					  button_flag = 0;
-					  option_page_2 = Page2_Nothing;
-					  lcd_clear();
-				  }
-			}
-/*case 2 CALIBRATION:*/
-			else if(option_page_1 == Page1_Calbration_sensor) // Display with calibration
-			{
-					LCD_Menu_2_3();
-					if(option_page_2 == Page2_calib_ph)
-					{
-						while(Rpush_number == 3)
-						{
-											LCD_Menu_2_3();
-											Push_Slect();
-											Pointer_2_Status(0);
-											lcd_send_cmd(0x80|0x16);
-											lcd_send_string("Please put sensor into PH7 or PH4");
-						}
-					}
-					else if(option_page_2 == Page2_calib_tds)
-					{
-
-					}
-					else if(option_page_2 == Page2_Back)
-					{
-					  Page = 1;
-					  Rpush_number = 1;
-					  button_flag = 0;
-					  option_page_2 = Page2_Nothing;
-					  lcd_clear();}
-			}
-/*case 2 WIFI_CONFIG:*/
-			else if(option_page_1 == Page1_WifiConfig)
-			{
-				LCD_Menu_2_4();
-				if(option_page_2 == Page2_start)
-				{
-
-				}
-				else if(option_page_2 == Page2_end)
-				{
-
-				}
-				else if(option_page_2 == Page2_Back)
-				{
-				  Page = 1;
-				  Rpush_number = 1;
-				  button_flag = 0;
-				  option_page_2 = Page2_Nothing;
-				  lcd_clear();
-				}
-			}
-			break;
-
-		default:
-			break;
-	}
-}
-
-/*=====================================LCD_END=================================*/
 
 /* USER CODE END 0 */
 
@@ -778,7 +247,10 @@ int main(void)
   MX_FATFS_Init();
   MX_ADC1_Init();
   MX_I2C1_Init();
+  MX_TIM4_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_Base_Start_IT(&htim4);
 //  HAL_UARTEx_ReceiveToIdle_DMA(&huart1,UART1_TEMPBUFFER,SIZEOF_COMMAND);
 //  __HAL_DMA_DISABLE_IT(&hdma_usart1_rx,DMA_IT_HT);
 //  char *FileName = "Truongs_house.txt";
@@ -788,28 +260,41 @@ int main(void)
 //  SD_Read(FileName, SPI1_SD_ReadBufferData);
 //
 //  SEND_UART1(SPI1_SD_ReadBufferData);
+  for(int i =0;i<5;i++)
+  {
+	  HAL_GPIO_TogglePin(test_pin_GPIO_Port,test_pin_Pin);
+	  HAL_Delay(100);
+  }
+
   HAL_Delay(50);
   lcd_init();
   Rotary_init();
+  lcd_clear();
 
-
+  W25qxx_Init();
+  HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
+//  Save_SetPoint();
+  uint32_t time_read= 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  LCD_Display();
+	  if(time_read == 100)
+	  {
+		  HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
+		  time_read = 0;
+	  }
+
+	  HAL_IWDG_Refresh(&hiwdg);
+	  time_read++;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  PH++;
-	  TDS++;
-	  Temperature++;
-	  LCD_Display();
-	  Handle_value_send(Value);
-	  HAL_Delay(5000);
-
-  }
+}
   /* USER CODE END 3 */
 }
 
@@ -830,9 +315,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 8;
@@ -880,7 +366,7 @@ static void MX_ADC1_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV6;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = ENABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
@@ -955,6 +441,34 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * @brief IWDG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_IWDG_Init(void)
+{
+
+  /* USER CODE BEGIN IWDG_Init 0 */
+
+  /* USER CODE END IWDG_Init 0 */
+
+  /* USER CODE BEGIN IWDG_Init 1 */
+
+  /* USER CODE END IWDG_Init 1 */
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_256;
+  hiwdg.Init.Reload = 2499;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IWDG_Init 2 */
+
+  /* USER CODE END IWDG_Init 2 */
+
+}
+
+/**
   * @brief SPI1 Initialization Function
   * @param None
   * @retval None
@@ -977,7 +491,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -989,6 +503,51 @@ static void MX_SPI1_Init(void)
   /* USER CODE BEGIN SPI1_Init 2 */
 
   /* USER CODE END SPI1_Init 2 */
+
+}
+
+/**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 50000-1;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 14400-1;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
 
 }
 
@@ -1056,18 +615,28 @@ static void MX_GPIO_Init(void)
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SPI1_CS_GPIO_Port, SPI1_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, SPI1_CS_Pin|test_pin_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : SPI1_CS_Pin */
-  GPIO_InitStruct.Pin = SPI1_CS_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(FLASH_CS_GPIO_Port, FLASH_CS_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : SPI1_CS_Pin test_pin_Pin */
+  GPIO_InitStruct.Pin = SPI1_CS_Pin|test_pin_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(SPI1_CS_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : FLASH_CS_Pin */
+  GPIO_InitStruct.Pin = FLASH_CS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(FLASH_CS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : Rotary_CLK_Pin Rotary_DT_Pin Rotary_SW_Pin */
   GPIO_InitStruct.Pin = Rotary_CLK_Pin|Rotary_DT_Pin|Rotary_SW_Pin;

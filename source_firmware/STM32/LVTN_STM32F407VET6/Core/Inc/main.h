@@ -37,6 +37,12 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 
+typedef enum
+{
+	flash_setpoint,
+	flash_calibration
+
+}Save_Flash_Type;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -57,8 +63,16 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define ADC1_PH_Sensor_Pin GPIO_PIN_0
+#define ADC1_PH_Sensor_GPIO_Port GPIOA
+#define ADC1_TDS_Sensor_Pin GPIO_PIN_1
+#define ADC1_TDS_Sensor_GPIO_Port GPIOA
 #define SPI1_CS_Pin GPIO_PIN_4
 #define SPI1_CS_GPIO_Port GPIOA
+#define test_pin_Pin GPIO_PIN_6
+#define test_pin_GPIO_Port GPIOA
+#define FLASH_CS_Pin GPIO_PIN_0
+#define FLASH_CS_GPIO_Port GPIOB
 #define Rotary_CLK_Pin GPIO_PIN_7
 #define Rotary_CLK_GPIO_Port GPIOE
 #define Rotary_DT_Pin GPIO_PIN_8

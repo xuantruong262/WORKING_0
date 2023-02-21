@@ -1,6 +1,8 @@
 Server requirment:
+	-Front end:
 	Màn hình đăng nhập
 	Hiển thị:
+		Lấy data và hiển thị cứ 10s 1 lần
 		Dashboard:
 			Hiển thị thông số: 					Temp, TDS, PH
 			Hiển thị dung tích bình dung dịch:	Acid, Base, Nutri A, Nutri B
@@ -11,14 +13,17 @@ Server requirment:
 			Nếu chưa được đăng kí thiết bị => Chỉ Show màn hình đăng kí thiết bị.
 			Nếu đã được đăng kí:
 				Tab setup ID thiết bị
-				Tab tạo profile cho cây trồng: Gồm - Giá trị đặt TDS , TDS_Thr, PH, PH_Thr, Nutri ratio
-				
-												
-					
+				Tab tạo profile cho cây trồng: Gồm - Giá trị đặt TDS , TDS_Thr, PH, PH_Thr, Nutri ratio																			
 		Charts:
 		About:
 		
 	Log out:
+	
+	-Database:
+	Lấy và lưu data từ SV 30p 1 lần
+	Lưu theo ngày, mỗi ngày lưu 48 lần ứng với 30p lấy data 1 lần
+	Có thể request history data ra theo ngày và show lên frontend.
+
 		
 
 	

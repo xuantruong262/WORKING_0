@@ -13,6 +13,7 @@
 #include<stdio.h>
 #include<stdint.h>
 #include<stdlib.h>
+#include "main.h"
 
 extern float  PH,PH_THR,TDS,TDS_THR,NU;
 extern float  esp32_stm32_SetPoint[];
