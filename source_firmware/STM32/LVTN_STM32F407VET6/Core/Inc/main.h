@@ -40,8 +40,8 @@ extern "C" {
 typedef enum
 {
 	flash_setpoint,
-	flash_calibration
-
+	flash_calibration_ph,
+	flash_calibration_tds
 }Save_Flash_Type;
 /* USER CODE END ET */
 

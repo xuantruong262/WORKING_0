@@ -16,12 +16,15 @@ uint8_t isPress = 0;
 uint32_t rotary_first_value = 0, rotary_curent_value = 0;
 
 extern float TDS,TDS_THR,PH,PH_THR,Temperature;
-extern float TDS_SetPoint,TDS_THR_SetPoint,PH_THR_SetPoint,PH_SetPoint;
+extern float TDS_SetPoint,TDS_THR_SetPoint,PH_THR_SetPoint,PH_SetPoint,a,b;
+extern uint16_t ADC_Value[2];
 Page1 option_page_1 = Page1_Nothing;
 Page2 option_page_2 = Page2_Nothing;
 
 extern void Read_SetPoint(Save_Flash_Type tp);
-extern void Save_SetPoint();
+extern void Save_SetPoint(Save_Flash_Type tp);
+extern float PH_Calculator(float A, float B, uint16_t adc);
+extern void  PH_Calibration();
 
 void Rotary_init()
 {
@@ -99,7 +102,6 @@ void Pointer_Status(uint32_t volume)
 				lcd_send_string(">>");
 			}
 			break;
-
 		default:
 			if(pointer_position>9)
 			{
@@ -181,13 +183,30 @@ void LCD_Menu_2_2()
 	lcd_send_cmd(0x80 | 0x56); //PH
 	lcd_send_string("Pump 4:");
 }
-void LCD_Menu_2_3()
+void LCD_Menu_2_3(uint8_t isCalib)
 {
-	lcd_send_cmd(0x80 | 0x02); //PH
-	lcd_send_string("PH:");
-	lcd_send_cmd(0x80 | 0x42); //PH
-	lcd_send_string("TDS:");
-	lcd_send_cmd(0x80 | 0x16); //PH
+	char buffer_String[100] = {0};
+	float PH_Calib = 0;
+	if(isCalib == 0)
+	{
+		lcd_send_cmd(0x80 | 0x02); //PH
+		sprintf(buffer_String,"PH:%.2f",PH);
+		lcd_send_string(buffer_String);
+		lcd_send_cmd(0x80 | 0x43); //PH
+		sprintf(buffer_String,"'>%.4f|%.4f",a,b);
+		lcd_send_string(buffer_String);
+	}
+	else if(isCalib == 1)
+	{
+		lcd_send_cmd(0x80 | 0x02);
+		lcd_send_string("Calib PH mode...");
+		PH_Calib = PH_Calculator(a, b, ADC_Value[0]);
+		sprintf(buffer_String,"%.2f---%d",PH_Calib,ADC_Value[0]);
+		lcd_send_cmd(0x80 | 0x41);
+		lcd_send_string(buffer_String);
+		lcd_send_cmd(0x80 | 0x54);
+		lcd_send_string("ph_7 or ph_4");
+	}
 }
 void LCD_Menu_2_4()
 {
@@ -247,7 +266,7 @@ void LCD_Display()
 	}
 	else if(Rpush_number == 2)
 	{
-		if(button_flag ==0)
+		if(button_flag == 0)
 		{
 			switch(pointer_position)
 		  {
@@ -267,12 +286,10 @@ void LCD_Display()
 				option_page_1 = Page1_WifiConfig;
 				Page = 2;
 				break;
-			case 8:
+			default:
 				option_page_1 = Page1_Back;
 				Page = 0;
 				Rpush_number = 0;
-				break;
-			default:
 				break;
 			}
 			button_flag =1;
@@ -299,7 +316,7 @@ void LCD_Display()
 				{
 					option_page_2 = Page2_tds_thr;
 				}
-				else if(pointer_position == 8)
+				else
 				{
 					option_page_2 = Page2_Back;
 				}
@@ -324,7 +341,7 @@ void LCD_Display()
 				{
 					option_page_2 = Page2_pump_4;
 				}
-				else if(pointer_position == 8)
+				else
 				{
 					option_page_2 = Page2_Back;
 				}
@@ -337,16 +354,16 @@ void LCD_Display()
 				if(pointer_position == 0)
 				{
 					option_page_2 = Page2_calib_ph;
+					lcd_clear();
 				}
 				else if(pointer_position == 2)
 				{
 					option_page_2 = Page2_calib_tds;
 				}
-				else if(pointer_position == 8)
+				else
 				{
 					option_page_2 = Page2_Back;
 				}
-
 			}
 			///OPTION WIFICONFIG PAGE 1
 			else if(option_page_1 == Page1_WifiConfig)
@@ -359,7 +376,7 @@ void LCD_Display()
 				{
 					option_page_2 = Page2_end;
 				}
-				else if(pointer_position == 8)
+				else
 				{
 					option_page_2 = Page2_Back;
 				}
@@ -373,10 +390,27 @@ void LCD_Display()
 				Rpush_number = 2;
 				button_flag = 1;
 				pointer_position = pointer_position + 1;
+				Save_SetPoint(flash_setpoint);
+				HAL_TIM_Base_Start_IT(&htim4);
+				lcd_clear();
+			}
+			if(option_page_1 == Page1_Calbration_sensor)
+			{
+				option_page_2 = Page2_Nothing;
+				Rpush_number = 2;
+				button_flag = 1;
+				pointer_position = pointer_position + 1;
+				Save_SetPoint(flash_calibration_ph);
+				Read_SetPoint(flash_calibration_ph);
+				HAL_TIM_Base_Start_IT(&htim4);
 				lcd_clear();
 			}
 		}
 	}
+
+
+
+
 	switch(Page)
 	{
 		case 0:									//Page 0 display
@@ -467,11 +501,6 @@ void LCD_Display()
 					  lcd_clear();
 				  }
 
-				  if(Rpush_number == 4)			// Out of set value mode
-				  {
-					  Save_SetPoint();
-					  HAL_TIM_Base_Start_IT(&htim4);
-				  }
 			}
 /*case 2 TESTING:*/
 			else if(option_page_1 == Page1_Testing) // Display with option testing
@@ -505,18 +534,20 @@ void LCD_Display()
 /*case 2 CALIBRATION:*/
 			else if(option_page_1 == Page1_Calbration_sensor) // Display with calibration
 			{
-					LCD_Menu_2_3();
+					Read_SetPoint(flash_calibration_ph);
+					LCD_Menu_2_3(0);
 					if(option_page_2 == Page2_calib_ph)
 					{
 						HAL_TIM_Base_Stop_IT(&htim4);
 						while(Rpush_number == 3)
 						{
-											LCD_Menu_2_3();
+
+											PH_Calibration();
+											LCD_Menu_2_3(1);
 											Push_Slect();
-											Pointer_2_Status(0);
-											lcd_send_cmd(0x80|0x16);
-											lcd_send_string("Please put sensor into PH7 or PH4");
+											HAL_Delay(500);
 											HAL_IWDG_Refresh(&hiwdg);
+
 						}
 					}
 					else if(option_page_2 == Page2_calib_tds)

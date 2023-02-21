@@ -61,7 +61,7 @@ void Pointer_Status(uint32_t volume);
 void Pointer_2_Status(uint32_t line);
 void LCD_Menu_2_1();
 void LCD_Menu_2_2();
-void LCD_Menu_2_3();
+void LCD_Menu_2_3(uint8_t isCalib);
 void LCD_Menu_2_4();
 void LCD_Menu_1();
 void LCD_Normal_Mode();

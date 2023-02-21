@@ -135,33 +135,33 @@ void Handle_value_send(Message_type tp)
 }
 /*=====================================PH,TDS_BEGIN=================================*/
 uint16_t ADC_Value[2] = {0};
+int ADC_PH_4 = 0, ADC_PH_7 = 0;
 float 	a = 0,b = 0;
+
 void PH_Calibration()
 {
- //Ax+B = y
-	int value_calib[2] = {0};
-	float CALIB_ADC_PH_4 = 0,CALIB_ADC_PH_7 = 0;
-	HAL_ADC_Start_DMA(&hadc1, value_calib, 2);
-	  if(value_calib[0] > 1990 && value_calib[0] < 2030)
+		//Ax+B = y => ADC_PH_4 - ADC_PH_7 = 640
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_Value, 2);
+
+	  if(ADC_Value[0] > 1540 && ADC_Value[0] < 2180)
 	  {
-	      CALIB_ADC_PH_7 = value_calib[0];
-	      CALIB_ADC_PH_4 = CALIB_ADC_PH_7 + 110;
+		  ADC_PH_7 = ADC_Value[0];
+		  ADC_PH_4 = ADC_PH_7 + 640;
 	    }
-	    else if(value_calib[0] < 2100 && value_calib[0] > 2060)
+	    else if(ADC_Value[0] < 2820 && ADC_Value[0] > 2180)
 	    {
-	      CALIB_ADC_PH_4 = value_calib[0];
-	      CALIB_ADC_PH_7 = CALIB_ADC_PH_7 - 110;
+	    	ADC_PH_4 = ADC_Value[0];
+	    	ADC_PH_7 = ADC_PH_4 - 640;
 	      }
 
-	  CALIB_ADC_PH_4 = CALIB_ADC_PH_4/1000;
-	  CALIB_ADC_PH_7 = CALIB_ADC_PH_7/1000;
-	  a = (7-4)/(CALIB_ADC_PH_7 - CALIB_ADC_PH_4);
-	  b = 4 - (a*CALIB_ADC_PH_4);
+	  a = (float)(3/(float)(ADC_PH_7 - ADC_PH_4));
+	  b = (float)((4 - (a*(float)ADC_PH_4)));
+
 }
-float PH_Calculator(float A, float B, uint32_t adc)
+float PH_Calculator(float A, float B, uint16_t adc)
 {
-	return (adc/1000)*A + B;
-	}
+	return (float)(adc*A + B);
+}
 
 /*=====================================PH,TDS_END=================================*/
 
@@ -181,21 +181,29 @@ void Save_SetPoint(Save_Flash_Type tp)
 		W25qxx_WriteSector(&TDS_SetPoint, 3, 0, 4);
 		W25qxx_WriteSector(&TDS_THR_SetPoint, 4, 0, 4);
 	}
-	else if(tp ==flash_calibration)
+	else if(tp ==flash_calibration_ph)
 	{
 		W25qxx_EraseSector(5);
 		W25qxx_EraseSector(6);
-		W25qxx_WriteSector(&PH_SetPoint, 5, 0, 4);
-		W25qxx_WriteSector(&PH_SetPoint, 6, 0, 4);
+		W25qxx_WriteSector(&a, 5, 0, 4);
+		W25qxx_WriteSector(&b, 6, 0, 4);
 	}
 
 }
-void Read_SetPoint()
+void Read_SetPoint(Save_Flash_Type tp)
 {
-	W25qxx_ReadSector(&PH_SetPoint, 1, 0, 4);
-	W25qxx_ReadSector(&PH_THR_SetPoint, 2, 0, 4);
-	W25qxx_ReadSector(&TDS_SetPoint, 3, 0, 4);
-	W25qxx_ReadSector(&TDS_THR_SetPoint, 4, 0, 4);
+	if(tp == flash_setpoint)
+	{
+		W25qxx_ReadSector(&PH_SetPoint, 1, 0, 4);
+		W25qxx_ReadSector(&PH_THR_SetPoint, 2, 0, 4);
+		W25qxx_ReadSector(&TDS_SetPoint, 3, 0, 4);
+		W25qxx_ReadSector(&TDS_THR_SetPoint, 4, 0, 4);
+	}
+	else if(tp == flash_calibration_ph)
+	{
+		W25qxx_ReadSector(&a, 5, 0, 4);
+		W25qxx_ReadSector(&b, 6, 0, 4);
+	}
 }
 
 /*=====================================Interrupt_Start=========================*/
@@ -273,8 +281,9 @@ int main(void)
 
   W25qxx_Init();
   HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
+  Read_SetPoint(flash_calibration_ph);
 //  Save_SetPoint();
-  uint32_t time_read= 0;
+  uint32_t time_read = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -286,11 +295,11 @@ int main(void)
 	  if(time_read == 100)
 	  {
 		  HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
+		  PH = PH_Calculator(a, b, ADC_Value[0]);
 		  time_read = 0;
 	  }
-
-	  HAL_IWDG_Refresh(&hiwdg);
 	  time_read++;
+	  HAL_IWDG_Refresh(&hiwdg);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
