@@ -60,11 +60,10 @@ void loop() {
   //   filt_data();
   //   publish_data();
   // }
-  PH++;
-  TDS++;
-  temperature++;
-  publish_data();
-  delay(5000);
+  // PH++;
+  // TDS++;
+  // temperature++;
+  // publish_data();
 
 
 } 

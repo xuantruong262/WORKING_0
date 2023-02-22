@@ -7,6 +7,8 @@
 
 #include"common.h"
 
+extern TIM_HandleTypeDef htim6;
+
 void BUFFER_CLEAR(uint8_t *buff, uint32_t sizebuff)
 {
 	for(int i = 0; i<sizebuff;i++)
@@ -57,3 +59,5 @@ void GET_VALUE_FROM_ESP32(char string[])
           }
     }
 }
+
+

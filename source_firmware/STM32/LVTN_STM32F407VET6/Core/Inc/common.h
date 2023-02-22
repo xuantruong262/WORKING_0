@@ -22,6 +22,7 @@ extern int    esp32_stm32_History[];
 void BUFFER_CLEAR(uint8_t *buff, uint32_t sizebuff);
 unsigned int BUFF_SIZE(uint8_t *buff);
 void GET_VALUE_FROM_ESP32(char string[]);
+//void delay_us(uint32_t time);
 
 
 

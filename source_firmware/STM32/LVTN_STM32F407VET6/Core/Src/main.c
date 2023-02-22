@@ -55,6 +55,7 @@ IWDG_HandleTypeDef hiwdg;
 SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim6;
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
@@ -73,6 +74,7 @@ static void MX_ADC1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_IWDG_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -84,7 +86,7 @@ static void MX_IWDG_Init(void);
 #define UART1_BUFFER_SIZE 1024
 
 
-float TDS = 500,TDS_THR= 0,PH = 300,PH_THR = 0,Temperature = 35.5;
+float TDS = 500,TDS_THR= 0,PH = 300,PH_THR = 0,Temperature = 0;
 float TDS_SetPoint = 0,TDS_THR_SetPoint = 0,PH_THR_SetPoint = 0,PH_SetPoint = 0;
 uint8_t day = 0, month = 0, hour= 0, minute = 0, second = 0;
 uint16_t year = 0;
@@ -96,6 +98,12 @@ uint8_t SPI1_SD_ReadBufferData[1024];			//Store SD data Read from SD
 uint8_t FileName[20];							//Name of File namme
 uint8_t UART1_TEMPBUFFER[SIZEOF_COMMAND];		//Temp buffer when receive data UART1
 uint8_t UART1_MAINBUFFER[UART1_BUFFER_SIZE];	//MAIN buffer store data UART1
+
+void delay_us(uint16_t time)
+{
+    __HAL_TIM_SET_COUNTER(&htim6,0);
+    while ((__HAL_TIM_GET_COUNTER(&htim6))<time);
+}
 /*=====================================COMMON_END=================================*/
 //
 //
@@ -135,8 +143,8 @@ void Handle_value_send(Message_type tp)
 }
 /*=====================================PH,TDS_BEGIN=================================*/
 uint16_t ADC_Value[2] = {0};
-int ADC_PH_4 = 0, ADC_PH_7 = 0;
-float 	a = 0,b = 0;
+int ADC_PH_4 = 0, ADC_PH_7 = 0,ADC_TDS_900 = 0,ADC_TDS_400 =0;
+float 	a = 0,b = 0,tds_a=0,tds_b = 0;
 
 void PH_Calibration()
 {
@@ -163,10 +171,36 @@ float PH_Calculator(float A, float B, uint16_t adc)
 	return (float)(adc*A + B);
 }
 
+void TDS_Calibration()
+{
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_Value, 2);
+
+	  if(ADC_Value[1] > 2625 && ADC_Value[1] < 3325)
+	  {
+		  ADC_TDS_400 = ADC_Value[1];
+		  ADC_TDS_900 = ADC_TDS_400 - 575;
+	    }
+	    else if(ADC_Value[1] < 2625 && ADC_Value[1] > 1875)
+	    {
+	    	ADC_TDS_900 = ADC_Value[1];
+	    	ADC_TDS_400 = ADC_TDS_900 + 575;
+	      }
+
+	  tds_a = (float)((415-900)/(float)(ADC_TDS_400 - ADC_TDS_900));
+	  tds_b = (float)((900 - (tds_a*(float)ADC_TDS_900)));
+
+}
+float TDS_Calculator(float A, float B, uint16_t adc)
+{
+	return (float)(adc*A + B);
+
+}
+
 /*=====================================PH,TDS_END=================================*/
 
 
 
+/*=====================================Flash_Start=================================*/
 
 void Save_SetPoint(Save_Flash_Type tp)
 {
@@ -188,6 +222,13 @@ void Save_SetPoint(Save_Flash_Type tp)
 		W25qxx_WriteSector(&a, 5, 0, 4);
 		W25qxx_WriteSector(&b, 6, 0, 4);
 	}
+	else if (tp == flash_calibration_tds)
+	{
+		W25qxx_EraseSector(7);
+		W25qxx_EraseSector(8);
+		W25qxx_WriteSector(&tds_a, 7, 0, 4);
+		W25qxx_WriteSector(&tds_b, 8, 0, 4);
+	}
 
 }
 void Read_SetPoint(Save_Flash_Type tp)
@@ -204,7 +245,128 @@ void Read_SetPoint(Save_Flash_Type tp)
 		W25qxx_ReadSector(&a, 5, 0, 4);
 		W25qxx_ReadSector(&b, 6, 0, 4);
 	}
+	else if (tp == flash_calibration_tds)
+	{
+		W25qxx_ReadSector(&tds_a, 7, 0, 4);
+		W25qxx_ReadSector(&tds_b, 8, 0, 4);
+	}
 }
+
+/*=====================================Flash_End=================================*/
+
+
+/*=====================================DS18B20_Start=================================*/
+uint8_t Temp_byte1, Temp_byte2;
+uint16_t TEMP;
+#define DS18B20_PORT Temperature_Pin_GPIO_Port
+#define DS18B20_PIN Temperature_Pin_Pin
+
+void Set_Pin_Output (GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
+{
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	GPIO_InitStruct.Pin = GPIO_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOx, &GPIO_InitStruct);
+}
+void Set_Pin_Input (GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
+{
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	GPIO_InitStruct.Pin = GPIO_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	HAL_GPIO_Init(GPIOx, &GPIO_InitStruct);
+}
+
+uint8_t DS18B20_Start (void)
+{
+	uint8_t Response = 0;
+	Set_Pin_Output(DS18B20_PORT, DS18B20_PIN);   // set the pin as output
+	HAL_GPIO_WritePin (DS18B20_PORT, DS18B20_PIN, 0);  // pull the pin low
+	delay_us(480);   // delay according to datasheet
+
+	Set_Pin_Input(DS18B20_PORT, DS18B20_PIN);    // set the pin as input
+	delay_us(80);    // delay according to datasheet
+
+	if (!(HAL_GPIO_ReadPin (DS18B20_PORT, DS18B20_PIN))) Response = 1;    // if the pin is low i.e the presence pulse is detected
+	else Response = -1;
+
+	delay_us(400); // 480 us delay totally.
+
+	return Response;
+}
+
+
+void DS18B20_Write (uint8_t data)
+{
+	Set_Pin_Output(DS18B20_PORT, DS18B20_PIN);  // set as output
+
+	for (int i=0; i<8; i++)
+	{
+		if ((data & (1<<i))!=0)  // if the bit is high
+		{
+			// write 1
+
+			Set_Pin_Output(DS18B20_PORT, DS18B20_PIN);  // set as output
+			HAL_GPIO_WritePin (DS18B20_PORT, DS18B20_PIN, 0);  // pull the pin LOW
+			delay_us(1);  // wait for 1 us
+
+			Set_Pin_Input(DS18B20_PORT, DS18B20_PIN);  // set as input
+			delay_us(50);  // wait for 60 us
+		}
+
+		else  // if the bit is low
+		{
+			// write 0
+			Set_Pin_Output(DS18B20_PORT, DS18B20_PIN);
+			HAL_GPIO_WritePin (DS18B20_PORT, DS18B20_PIN, 0);  // pull the pin LOW
+			delay_us(50);  // wait for 60 us
+			Set_Pin_Input(DS18B20_PORT, DS18B20_PIN);
+		}
+	}
+}
+
+uint8_t DS18B20_Read (void)
+{
+	uint8_t value=0;
+
+	Set_Pin_Input(DS18B20_PORT, DS18B20_PIN);
+
+	for (int i=0;i<8;i++)
+	{
+		Set_Pin_Output(DS18B20_PORT, DS18B20_PIN);   // set as output
+
+		HAL_GPIO_WritePin (DS18B20_PORT, DS18B20_PIN, 0);  // pull the data pin LOW
+		delay_us(1);  // wait for > 1us
+
+		Set_Pin_Input(DS18B20_PORT, DS18B20_PIN);  // set as input
+		if (HAL_GPIO_ReadPin (DS18B20_PORT, DS18B20_PIN))  // if the pin is HIGH
+		{
+			value |= 1<<i;  // read = 1
+		}
+		delay_us(50);  // wait for 60 us
+	}
+	return value;
+}
+
+float Get_Temperature_DS18B20()
+{
+		  DS18B20_Start ();
+		  HAL_Delay(1);
+		  DS18B20_Write (0xCC);  // skip ROM
+		  DS18B20_Write (0x44);  // convert t
+		  HAL_Delay (800);
+
+		  DS18B20_Start ();
+	      HAL_Delay(1);
+	      DS18B20_Write (0xCC);  // skip ROM
+	      DS18B20_Write (0xBE);  // Read Scratch-pad
+	      Temp_byte1 = DS18B20_Read();
+		  Temp_byte2 = DS18B20_Read();
+		  TEMP = (Temp_byte2<<8)|Temp_byte1;
+		  return (float)TEMP/16;
+}
+/*=====================================DS18B20_End=================================*/
 
 /*=====================================Interrupt_Start=========================*/
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -257,32 +419,31 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM4_Init();
   MX_IWDG_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim4);
+  HAL_TIM_Base_Start(&htim6);
 //  HAL_UARTEx_ReceiveToIdle_DMA(&huart1,UART1_TEMPBUFFER,SIZEOF_COMMAND);
 //  __HAL_DMA_DISABLE_IT(&hdma_usart1_rx,DMA_IT_HT);
-//  char *FileName = "Truongs_house.txt";
-//  HAL_Delay(500);
-//  SD_Handling(SPI1_SD_ReadBufferData);
-//  SD_Write(FileName, "Truong was here!!!\n");
-//  SD_Read(FileName, SPI1_SD_ReadBufferData);
-//
-//  SEND_UART1(SPI1_SD_ReadBufferData);
+
+
+
   for(int i =0;i<5;i++)
   {
 	  HAL_GPIO_TogglePin(test_pin_GPIO_Port,test_pin_Pin);
-	  HAL_Delay(100);
+	  HAL_Delay(200);
   }
 
-  HAL_Delay(50);
+  //HAL_Delay(50);
   lcd_init();
   Rotary_init();
   lcd_clear();
 
   W25qxx_Init();
   HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
+  Read_SetPoint(flash_calibration_tds);
   Read_SetPoint(flash_calibration_ph);
-//  Save_SetPoint();
+
   uint32_t time_read = 0;
   /* USER CODE END 2 */
 
@@ -296,10 +457,19 @@ int main(void)
 	  {
 		  HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
 		  PH = PH_Calculator(a, b, ADC_Value[0]);
+//		  TDS = TDS_Calculator(tds_a,tds_b, ADC_Value[1]);
+		  TDS = 0.375 * (float)ADC_Value[1];
+		  Temperature = Get_Temperature_DS18B20();
 		  time_read = 0;
 	  }
 	  time_read++;
 	  HAL_IWDG_Refresh(&hiwdg);
+
+
+
+
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -405,6 +575,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = 2;
+  sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -561,6 +732,44 @@ static void MX_TIM4_Init(void)
 }
 
 /**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 72-1;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 0xffff-1;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+
+  /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
   * @brief USART1 Initialization Function
   * @param None
   * @retval None
@@ -628,13 +837,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOE_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, SPI1_CS_Pin|test_pin_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, Temperature_Pin_Pin|SPI1_CS_Pin|test_pin_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(FLASH_CS_GPIO_Port, FLASH_CS_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : SPI1_CS_Pin test_pin_Pin */
-  GPIO_InitStruct.Pin = SPI1_CS_Pin|test_pin_Pin;
+  /*Configure GPIO pins : Temperature_Pin_Pin SPI1_CS_Pin test_pin_Pin */
+  GPIO_InitStruct.Pin = Temperature_Pin_Pin|SPI1_CS_Pin|test_pin_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
