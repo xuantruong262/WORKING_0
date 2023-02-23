@@ -16,6 +16,6 @@ def delete_by_id(request, id):
     if len(list(mqtt_collection.find())) == 0:
         return JsonResponse({"error": "Collection is already empty"})
     elif request.method == 'DELETE':
-        mqtt_collection.delete_one({"$unset": {"device""temp": 14}})
+        mqtt_collection.delete_one({'device_id': id})
         return JsonResponse({"error": "Delete successfully"})
     return JsonResponse({"error": "Failed to deleted all"})

@@ -24,10 +24,14 @@ def on_message(mqtt_client, userdata, msg):
     global receive_time
     try:
         if receive_time == 1:
+            device = json.loads(msg.payload.decode("utf-8"))
             res = {
                 "timestamp": datetime.datetime.now(),
                 "topic": msg.topic,
-                "device": json.loads(msg.payload.decode("utf-8"))
+                "device_id": device['id'],
+                "ph": device['ph'],
+                "tds": device['tds'],
+                "temperature": device['temp']
             }
             mqtt_collection.insert_one(res)
             print('Inserted successfully', res)
