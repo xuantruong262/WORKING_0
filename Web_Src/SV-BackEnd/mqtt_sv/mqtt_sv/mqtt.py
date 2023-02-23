@@ -1,10 +1,14 @@
 import paho.mqtt.client as mqtt
 from django.conf import settings
-from . import config
-import datetime
+from . import config, models
+
+import datetime, json
 
 mqtt_config = config.MQTT_CONFIG
 topics = config.MQTT_TOPICS
+mqtt_collection = config.MQTT_COLLECTION
+
+receive_time = 1
 
 
 def on_connect(mqtt_client, userdata, flags, rc):
@@ -14,8 +18,23 @@ def on_connect(mqtt_client, userdata, flags, rc):
     else:
         print('Bad connection. Code:', rc)
 
+
 def on_message(mqtt_client, userdata, msg):
     print(f'Received message on topic: {msg.topic} with payload: {msg.payload}')
+    global receive_time
+    try:
+        if receive_time == 1:
+            res = {
+                "timestamp": datetime.datetime.now(),
+                "topic": msg.topic,
+                "device": json.loads(msg.payload.decode("utf-8"))
+            }
+            mqtt_collection.insert_one(res)
+            print('Inserted successfully', res)
+            receive_time = 0
+        receive_time += 1
+    except Exception as e:
+        print('Error: Exception with:', e)
 
 
 client = mqtt.Client("phuoc", transport='websockets')
@@ -27,4 +46,3 @@ client.connect(
     port=mqtt_config['port'],
     keepalive=mqtt_config['keep_alive']
 )
-

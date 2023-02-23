@@ -1,3 +1,5 @@
+from pymongo import MongoClient
+
 MQTT_SERVER = 'ngoinhaiot.com'
 MQTT_PORT = 2222
 MQTT_KEEPALIVE = 60
@@ -17,3 +19,7 @@ MQTT_TOPICS = {
     'tds': MQTT_USER + '/TDS_value',
     'temp': MQTT_USER + '/Temprature_value'
 }
+
+MONGO_CLIENT = MongoClient()
+DB = MONGO_CLIENT['mqtt']
+MQTT_COLLECTION = DB['mqtt']
