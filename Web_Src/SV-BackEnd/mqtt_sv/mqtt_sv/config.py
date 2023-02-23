@@ -1,8 +1,8 @@
-MQTT_SERVER = 'maqiatto.com'
-MQTT_PORT = 1883
+MQTT_SERVER = 'ngoinhaiot.com'
+MQTT_PORT = 2222
 MQTT_KEEPALIVE = 60
-MQTT_USER = 'vxtruong262@gmail.com'
-MQTT_PASSWORD = '1'
+MQTT_USER = 'XuanTruong'
+MQTT_PASSWORD = '759E283B03B34284'
 
 MQTT_CONFIG = {
     'server': MQTT_SERVER,
