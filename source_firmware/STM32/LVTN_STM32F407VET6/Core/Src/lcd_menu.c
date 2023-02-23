@@ -16,7 +16,7 @@ uint8_t isPress = 0;
 uint32_t rotary_first_value = 0, rotary_curent_value = 0;
 
 extern float TDS,TDS_THR,PH,PH_THR,Temperature;
-extern float TDS_SetPoint,TDS_THR_SetPoint,PH_THR_SetPoint,PH_SetPoint,a,b,tds_a,tds_b;
+extern float TDS_SetPoint,TDS_THR_SetPoint,PH_THR_SetPoint,PH_SetPoint,ph_a_value,ph_b_value,tds_k_value;
 extern uint16_t ADC_Value[2];
 Page1 option_page_1 = Page1_Nothing;
 Page2 option_page_2 = Page2_Nothing;
@@ -26,7 +26,7 @@ extern void Save_SetPoint(Save_Flash_Type tp);
 extern float PH_Calculator(float A, float B, uint16_t adc);
 extern void  PH_Calibration();
 extern void TDS_Calibration();
-extern float TDS_Calculator(float A, float B , uint16_t adc);
+extern float TDS_Calculator(float k , uint16_t adc);
 void Rotary_init()
 {
 	rotary_first_value = HAL_GPIO_ReadPin(GPIOE, Rotary_CLK_Pin);
@@ -196,15 +196,15 @@ void LCD_Menu_2_3(uint8_t isCalib)
 		sprintf(buffer_String,"PH:%.2f",PH);
 		lcd_send_string(buffer_String);
 		lcd_send_cmd(0x80 | 0x43); //PH
-		sprintf(buffer_String,"=>%.4f|%.4f",a,b);
+		sprintf(buffer_String,"=>%.4f|%.4f",ph_a_value,ph_b_value);
 		lcd_send_string(buffer_String);
 
 		/*TDS*/
 		lcd_send_cmd(0x80 | 0x16); //PH
-		sprintf(buffer_String,"TDS:%d",TDS);
+		sprintf(buffer_String,"TDS:%d",(int)TDS);
 		lcd_send_string(buffer_String);
 		lcd_send_cmd(0x80 | 0x57); //PH
-		sprintf(buffer_String,"=>%.4f|%.4f",tds_a,tds_b);
+		sprintf(buffer_String,"=>%.2f",tds_k_value);
 		lcd_send_string(buffer_String);
 
 	}
@@ -212,7 +212,7 @@ void LCD_Menu_2_3(uint8_t isCalib)
 	{
 		lcd_send_cmd(0x80 | 0x02);
 		lcd_send_string("Calib PH mode...");
-		PH_Calib = PH_Calculator(a, b, ADC_Value[0]);
+		PH_Calib = PH_Calculator(ph_a_value, ph_b_value, ADC_Value[0]);
 		sprintf(buffer_String,"%.2f---%d",PH_Calib,ADC_Value[0]);
 		lcd_send_cmd(0x80 | 0x41);
 		lcd_send_string(buffer_String);
@@ -223,7 +223,7 @@ void LCD_Menu_2_3(uint8_t isCalib)
 	{
 		lcd_send_cmd(0x80 | 0x02);
 		lcd_send_string("Calib TDS mode...");
-		TDS_Calib = TDS_Calculator(tds_a,tds_b, ADC_Value[1]);
+		TDS_Calib = TDS_Calculator(tds_k_value, ADC_Value[1]);
 		sprintf(buffer_String,"%.1f-%d",(float)TDS_Calib,ADC_Value[1]);
 		lcd_send_cmd(0x80 | 0x41);
 		lcd_send_string(buffer_String);
@@ -587,6 +587,7 @@ void LCD_Display()
 											LCD_Menu_2_3(1);
 											Push_Slect();
 											HAL_Delay(500);
+											lcd_clear();
 											HAL_IWDG_Refresh(&hiwdg);
 
 						}

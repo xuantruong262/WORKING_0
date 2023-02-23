@@ -86,10 +86,16 @@ static void MX_TIM6_Init(void);
 #define UART1_BUFFER_SIZE 1024
 
 
-float TDS = 500,TDS_THR= 0,PH = 300,PH_THR = 0,Temperature = 0;
+float TDS = 0,TDS_THR= 0,PH = 0,PH_THR = 0,Temperature = 0;
+
+
 float TDS_SetPoint = 0,TDS_THR_SetPoint = 0,PH_THR_SetPoint = 0,PH_SetPoint = 0;
+
+
 uint8_t day = 0, month = 0, hour= 0, minute = 0, second = 0;
 uint16_t year = 0;
+
+
 float   esp32_stm32_SetPoint[] = {0};
 int     esp32_stm32_History[] = {0};
 
@@ -143,8 +149,8 @@ void Handle_value_send(Message_type tp)
 }
 /*=====================================PH,TDS_BEGIN=================================*/
 uint16_t ADC_Value[2] = {0};
-int ADC_PH_4 = 0, ADC_PH_7 = 0,ADC_TDS_900 = 0,ADC_TDS_400 =0;
-float 	a = 0,b = 0,tds_a=0,tds_b = 0;
+int ADC_PH_4 = 0, ADC_PH_7 = 0;
+float 	ph_a_value = 0,ph_b_value = 0,tds_k_value = 0;
 
 void PH_Calibration()
 {
@@ -162,8 +168,8 @@ void PH_Calibration()
 	    	ADC_PH_7 = ADC_PH_4 - 640;
 	      }
 
-	  a = (float)(3/(float)(ADC_PH_7 - ADC_PH_4));
-	  b = (float)((4 - (a*(float)ADC_PH_4)));
+	  ph_a_value = (float)(3/(float)(ADC_PH_7 - ADC_PH_4));
+	  ph_b_value = (float)((4 - (ph_a_value*(float)ADC_PH_4)));
 
 }
 float PH_Calculator(float A, float B, uint16_t adc)
@@ -175,25 +181,12 @@ void TDS_Calibration()
 {
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_Value, 2);
 
-	  if(ADC_Value[1] > 2625 && ADC_Value[1] < 3325)
-	  {
-		  ADC_TDS_400 = ADC_Value[1];
-		  ADC_TDS_900 = ADC_TDS_400 - 575;
-	    }
-	    else if(ADC_Value[1] < 2625 && ADC_Value[1] > 1875)
-	    {
-	    	ADC_TDS_900 = ADC_Value[1];
-	    	ADC_TDS_400 = ADC_TDS_900 + 575;
-	      }
-
-	  tds_a = (float)((415-900)/(float)(ADC_TDS_400 - ADC_TDS_900));
-	  tds_b = (float)((900 - (tds_a*(float)ADC_TDS_900)));
-
+	tds_k_value = (1000/(float)ADC_Value[1]);
 }
-float TDS_Calculator(float A, float B, uint16_t adc)
-{
-	return (float)(adc*A + B);
 
+float TDS_Calculator(float k, uint16_t adc)
+{
+	return (float)(k*adc);
 }
 
 /*=====================================PH,TDS_END=================================*/
@@ -201,6 +194,7 @@ float TDS_Calculator(float A, float B, uint16_t adc)
 
 
 /*=====================================Flash_Start=================================*/
+float *save_data_flash_ptr = NULL;
 
 void Save_SetPoint(Save_Flash_Type tp)
 {
@@ -219,15 +213,14 @@ void Save_SetPoint(Save_Flash_Type tp)
 	{
 		W25qxx_EraseSector(5);
 		W25qxx_EraseSector(6);
-		W25qxx_WriteSector(&a, 5, 0, 4);
-		W25qxx_WriteSector(&b, 6, 0, 4);
+		W25qxx_WriteSector(&ph_a_value, 5, 0, 4);
+		W25qxx_WriteSector(&ph_b_value, 6, 0, 4);
 	}
 	else if (tp == flash_calibration_tds)
 	{
 		W25qxx_EraseSector(7);
-		W25qxx_EraseSector(8);
-		W25qxx_WriteSector(&tds_a, 7, 0, 4);
-		W25qxx_WriteSector(&tds_b, 8, 0, 4);
+		W25qxx_WriteSector(&tds_k_value, 7, 0, 4);
+
 	}
 
 }
@@ -242,13 +235,12 @@ void Read_SetPoint(Save_Flash_Type tp)
 	}
 	else if(tp == flash_calibration_ph)
 	{
-		W25qxx_ReadSector(&a, 5, 0, 4);
-		W25qxx_ReadSector(&b, 6, 0, 4);
+		W25qxx_ReadSector(&ph_a_value, 5, 0, 4);
+		W25qxx_ReadSector(&ph_b_value, 6, 0, 4);
 	}
 	else if (tp == flash_calibration_tds)
 	{
-		W25qxx_ReadSector(&tds_a, 7, 0, 4);
-		W25qxx_ReadSector(&tds_b, 8, 0, 4);
+		W25qxx_ReadSector(&tds_k_value, 7, 0, 4);
 	}
 }
 
@@ -374,7 +366,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	 if(htim->Instance == htim4.Instance)
 	 {
 	   HAL_GPIO_TogglePin(test_pin_GPIO_Port,test_pin_Pin);
-	   lcd_clear();
 	 }
 }
 /*=====================================Interrupt_End=========================*/
@@ -456,9 +447,9 @@ int main(void)
 	  if(time_read == 100)
 	  {
 		  HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
-		  PH = PH_Calculator(a, b, ADC_Value[0]);
-//		  TDS = TDS_Calculator(tds_a,tds_b, ADC_Value[1]);
-		  TDS = 0.375 * (float)ADC_Value[1];
+		  PH = PH_Calculator(ph_a_value, ph_b_value, ADC_Value[0]);
+		  TDS = TDS_Calculator(tds_k_value, ADC_Value[1]);
+
 		  Temperature = Get_Temperature_DS18B20();
 		  time_read = 0;
 	  }
