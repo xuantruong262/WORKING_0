@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include<stdio.h>
+#include<string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -192,7 +193,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	 if(htim->Instance == htim2.Instance)
 	 {
 	   HAL_GPIO_TogglePin(test_pin_GPIO_Port,test_pin_Pin);
+	   Send_data();
 	 }
+}
+
+char buffer_send[100];
+
+void Send_data()
+{
+	HAL_UART_Transmit(&huart3, (uint8_t*)buffer_send, strlen(buffer_send), 200);
 }
 /*=====================================Interrupt_End=========================*/
 /* USER CODE END 0 */
@@ -233,17 +242,24 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
   HAL_TIM_Base_Start(&htim4);
+  uint32_t count =0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-  	  HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
-  	  PH = ((-0.0047)*(float)ADC_Value[0] + 15.5688);
-  	  TDS = 0.375 * (float)ADC_Value[1];
-  	  Temperature = Get_Temperature_DS18B20();
-  	  HAL_Delay(2000);
+	  if(count == 2000)
+	  {
+		  HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
+		  PH = ((-0.00467)*(float)ADC_Value[0] + 15.5714);
+		  TDS = 0.3846 * (float)ADC_Value[1];
+		  Temperature = Get_Temperature_DS18B20();
+		  memset(buffer_send,0,strlen(buffer_send));
+		  sprintf(buffer_send,"{'ID':'12345678','PH':'%.2f','TDS':'%.0f','Temp':'%.2f'}",PH,TDS,Temperature);
+		  count =0;
+	  }
+	  count++;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
