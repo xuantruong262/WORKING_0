@@ -1,0 +1,68 @@
+body
+{
+    padding: 0;
+    margin: 0;
+    background-color:whitesmoke;
+}
+.header
+{
+    height: 150%;
+    width: 20%;
+    float:left;
+    margin-bottom: 0;
+    border-right: 5px solid black;
+}
+
+.header .logo img
+{
+    margin-left: 10%;
+    margin-top: 20%;
+    height: 80%;
+    width: 80%;
+}
+.header .menu{
+    margin-top: 10%;
+}
+.header .menu ul{
+    font-size: 190%;
+    list-style: none;
+    list-style-type: none;
+    font-weight: bold;
+    padding-top: 15%;
+}
+.header .menu ul>li{
+    margin-top: 10%;
+}
+.header .menu ul>li a{
+    text-decoration: none;
+}
+.header .menu ul>li img 
+{
+    width: 8%;
+    height:8%;
+}
+
+.header .exit
+{
+    font-size: 170%;
+    list-style: none;
+    list-style-type: none;
+    font-weight: bold;
+    margin-top: 40%;
+    margin-left: 15%;
+}
+
+.dashboard{
+    float: none;
+    margin-left: 50%;
+    margin-top: 10%;
+    height: 100px;
+    width: 100px;
+}
+
+
+
+
+
+
+

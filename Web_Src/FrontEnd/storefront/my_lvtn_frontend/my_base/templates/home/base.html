@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>My Website</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'home/style.css' %}">
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="{% static "home/icon/logo_uth.png" alt=logo %}">
+        </div>
+        
+        <div class="menu">
+            <ul>
+                <li><a href="{% url 'dashboard' %}"><img src="{% static "/home/icon/dashboard.png" %}"> DASHBOARD</a>
+                </li>
+                <li><a href="#"><img src="{% static "/home/icon/device.png" %}"> DEVICE</a> </li>
+                <li><a href="#"><img src="{% static "/home/icon/chart.png" %}"> CHART</a> </li>
+                <li><a href="#"><img src="{% static "/home/icon/about.png" %}"> ABOUT</a> </li>
+            </ul>
+        </div>
+
+        <div class="exit">
+            <li><a href="#"><img src="{% static "/home/icon/log-out.png" alt="log-out" %}" width="30px"
+                        height="30px">EXIT</a> </li>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        {% block dashboard %}
+
+        {% endblock %}
+    </div>
+
+    <div class="Devices">
+        {% block Devices %}
+
+        {% endblock %}
+    </div>
+
+</body>
+
+</html>
