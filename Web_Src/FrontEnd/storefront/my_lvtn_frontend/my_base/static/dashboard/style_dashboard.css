@@ -1,0 +1,130 @@
+/* STYLE FOR DASHBOARD PAGE */
+/* h1{
+    
+    height: auto;
+    width: 300px;
+} */
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,700,300);
+.dashboard{   
+    background-color: aquamarine;
+    float: right;
+    margin-left: -8%;
+    margin-top: 3%;
+    height: 650px;
+    width: 75%;
+}
+.curent_value{
+    margin: 0;
+    padding: 0;
+}
+.temperature{
+    height: 40%;
+    width: 30%;
+    margin-top: 5%;
+    margin-left: 8%;
+    background-color: antiquewhite;
+    border-radius: 8%;
+    font-size: large;
+    
+}
+
+.temperature h1{
+    font-size: 95%;
+    float:right;
+    height: 0%;
+    width: 20%;
+    position: relative;left: -40%;
+    margin-top:10% ;
+    /* margin-right: 30%; */
+    /* padding-left: 10%; */
+    color:blue ;
+}
+.temperature h2{
+    font-size: 85%;
+    float:right;
+    height: 0;
+    width: 20%;
+    position: relative;left: -15%;
+    margin-top:17% ;
+    /* margin-top: 15%; */
+    /* margin-left: 30%; */
+    color:blue ;
+}
+
+.PH{
+    background-color: aliceblue;
+    height: 40%;
+    width: 30%;
+    margin-top: 2%;
+    margin-left: 8%;
+    border-radius: 8%;
+    font-size: large;
+}
+.PH h1{
+    font-size: 95%; 
+    height: 0%;
+    width: 20%;
+    float: right;
+    color:blue ;
+    position: relative;left: -33%;
+    margin-top:10% ;
+}
+.PH h2{
+    font-size: 85%;
+    float:right;
+    height: 0;
+    width: 20%;
+    position: relative;left: -15%;
+    margin-top:17% ;
+    /* margin-top: 15%; */
+    /* margin-left: 30%; */
+    color:blue ;
+}
+
+.TDS{
+    background-color: aliceblue;
+    height: 39%;
+    width: 20%;
+    position: absolute;left: 55%;top:15%;
+    /* margin-top: 2%;
+    margin-right: -10%; */
+    border-radius: 15%;
+    font-size: large;
+}
+.TDS h1{
+    font-size: 95%; 
+    height: 0%;
+    width: 20%;
+    float: right;
+    color:blue ;
+    position: relative;left: -20%;top: 28%;
+    margin-top:10% ;
+}
+.TDS h2{
+    font-size: 85%;
+    float:right;
+    height: 0;
+    width: 20%;
+    position: relative;left: -2%;top: 30%;
+    margin-top:17% ;
+    /* margin-top: 15%; */
+    /* margin-left: 30%; */
+    color:blue ;
+}
+
+.bottle_curent_value
+{
+    height: 100%;
+    width: 58%;
+    background-color: antiquewhite;
+    position: relative; left: 8%;
+    margin-top: 6%;
+}
+
+.Acid{
+    background-color: red;
+    height: 100%;
+    width: 25%;
+}
+
+

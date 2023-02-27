@@ -21,7 +21,10 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 urlpatterns = [
     path('base', views.base, name= "base"),
     path('base/dashboard',views.dashboard,name= "dashboard"),
-    path('',views.home,name = "home"),
+    path('base/device',views.device,name = "device"),
+    path('base/chart',views.chart,name = "chart"),
+    path('base/about',views.about,name = "about"),
 ]
+
 
 urlpatterns += staticfiles_urlpatterns()

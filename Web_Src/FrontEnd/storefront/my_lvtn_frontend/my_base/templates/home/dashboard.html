@@ -1,4 +1,43 @@
 {% extends 'home/base.html' %}
     {% block dashboard %}
-        <h1>!!!DASHBOARD PAGE!!!</h1>
+    {% load static %}    
+    <div class="curent_value">
+        <div class="temperature">
+            <h1>temperature</h1>
+            <h2>(value)</h2>
+            <img src="{% static "home/icon/temperature.png" alt="icon_temperature"  %}"  style = "width:15%; height: 15%; margin:10% 20% 10% 20%;" >
+        </div>
+
+        <div class="PH">
+            <h1>PH</h1>
+            <h2>(value)</h2>
+            <img src="{% static "home/icon/ph.png" alt="icon_PH"  %}"  style = "width:15%; height: 15%; margin:10% 20% 10% 20%;" >
+        </div>
+
+        <div class="TDS">
+            <h1>TDS</h1>
+            <h2>(value)</h2>
+            <img src="{% static "home/icon/TDS.png" alt="icon_TDS"  %}"  style = "width:30%; height: 30%; position: absolute; left: 10%;top: 33%;" >
+        </div>
+
+
+    <div class="bottle_curent_value">
+        <div class="Acid">
+            this is acid
+        </div>
+
+        <div class="Base">
+
+        </div>
+
+        <div class="Nutri_A">
+
+        </div>
+
+        <div class="Nutri_B">
+
+        </div>
+        
+    </div>
+
     {% endblock %}

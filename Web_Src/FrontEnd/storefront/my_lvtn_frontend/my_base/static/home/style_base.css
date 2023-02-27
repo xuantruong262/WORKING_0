@@ -1,3 +1,4 @@
+/* STYLE FOR Base PAGE */
 body
 {
     padding: 0;
@@ -52,13 +53,7 @@ body
     margin-left: 15%;
 }
 
-.dashboard{
-    float: none;
-    margin-left: 50%;
-    margin-top: 10%;
-    height: 100px;
-    width: 100px;
-}
+
 
 
 

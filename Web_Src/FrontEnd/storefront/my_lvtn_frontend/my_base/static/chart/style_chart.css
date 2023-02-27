@@ -1,0 +1,17 @@
+/* STYLE FOR DASHBOARD PAGE */
+/* h1{
+    
+    height: auto;
+    width: 300px;
+} */
+h4{
+    color: green;
+}
+.chart{   
+    background-color: crimson;
+    float: right;
+    margin-left: -8%;
+    margin-top: 3%;
+    height: 650px;
+    width: 75%;
+}
