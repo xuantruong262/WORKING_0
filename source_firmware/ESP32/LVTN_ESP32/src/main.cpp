@@ -3,67 +3,72 @@
 #include <WiFi.h>
 #include "MQTT_Connection.h"
 #include <string.h>
+#include <esp_task_wdt.h>
 
 #define TX2 
 #define RX2
-String str;
+#define WDT_TIMEOUT 10
+#define test_led 2
 
-float PH = 0 ,temperature = 0;
-int   TDS = 0;
+String kaka;
 
-float PH_Setpoint = 0, \
-      PH_THR_Setpoint, \
-      TDS_Setpoint =0, \
-      TDS_THR_Setpoint = 0;
+
+
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   Serial2.begin(115200);
   Serial.setTimeout(500);
+  esp_task_wdt_init(WDT_TIMEOUT, true); //enable panic so ESP32 restarts
+  esp_task_wdt_add(NULL); //add current thread to WDT watch
+  pinMode(test_led,OUTPUT);
+
+  for(int i=0;i<5;i++)
+  {
+    digitalWrite(test_led,1);
+    delay(100);
+    digitalWrite(test_led,0);
+  }
+
   setup_wifi();
   MQTT_Init();
   connect_to_broker();
+
+  
 }
 
-String splitString(String str, String delim, uint16_t pos)
-{
-  String tmp = str;
-  for(int i=0; i<pos; i++)
-  {
-    tmp = tmp.substring(tmp.indexOf(delim)+1);    
-    if(tmp.indexOf(delim)== -1 && i != pos -1 )
-      return "";
-  }
-  return tmp.substring(0,tmp.indexOf(delim));
-}
+// String splitString(String str, String delim, uint16_t pos)
+// {
+//   String tmp = str;
+//   for(int i=0; i<pos; i++)
+//   {
+//     tmp = tmp.substring(tmp.indexOf(delim)+1);    
+//     if(tmp.indexOf(delim)== -1 && i != pos -1 )
+//       return "";
+//   }
+//   return tmp.substring(0,tmp.indexOf(delim));
+// }
 
-void filt_data()
-{
-  String str1,str2,str3;
-  str1 = splitString(str,",",1);
-  str2 = splitString(str,",",2);
-  str3 = splitString(str,",",3);
-  PH = str1.toFloat();
-  TDS= str2.toInt();
-  temperature = str3.toFloat();
-}
 
 
 
 void loop() {
  // put your main code here, to run repeatedly:
   MQTT_loop();
-  // if(Serial2.available())
+
+  // if ((unsigned long)(millis() - time) >= 3000) 
   // {
-  //   str = Serial2.readString();   
-  //   filt_data();
-  //   publish_data();
+  //   esp_task_wdt_reset();
+  //   time = millis();
   // }
-  // PH++;
-  // TDS++;
-  // temperature++;
-  // publish_data();
+  if(Serial2.available())
+  {
+    kaka = Serial2.readString();   
+    publish_data();
+  }
+  esp_task_wdt_reset();
+
 
 
 } 

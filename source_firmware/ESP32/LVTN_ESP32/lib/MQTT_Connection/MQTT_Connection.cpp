@@ -1,13 +1,10 @@
 #include"MQTT_Connection.h"
-#include<PubSubClient.h>
-#include<WiFi.h>
 
-extern float PH;
-extern float temperature;
-extern int TDS;
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
+
+extern String kaka;
 
 const char* ssid = "Xuan Truong";
 const char* password = "3conchimnon";
@@ -33,8 +30,6 @@ void connect_to_broker() {
     if (client.connect(clientId.c_str(),MQTT_USER,MQTT_PASSWORD)) {
       Serial.println("connected");
       client.subscribe(Topic_1);
-      client.subscribe(Topic_2);
-      client.subscribe(Topic_3);
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -45,7 +40,7 @@ void connect_to_broker() {
 }
 
 void callback(char* topic, byte *payload, unsigned int length) {
-  char status[20];
+  char status[100];
   Serial.println("-------new message from broker-----");
   Serial.print("topic: ");
   Serial.println(topic);
@@ -64,26 +59,15 @@ void MQTT_Init()
   setup_wifi();
   client.setServer(MQTT_SERVER, MQTT_PORT );
   client.setCallback(callback);
-  connect_to_broker();
+  connect_to_broker(); 
   Serial.println("Start transfer");
 }
 
 void publish_data()
 {
-  char Temp_Buffer[50];
-  dtostrf(PH, 1, 0, Temp_Buffer);
-  client.publish(Topic_1,Temp_Buffer);
-  memset(Temp_Buffer,0,strlen(Temp_Buffer));
-
-  dtostrf(TDS, 1, 0, Temp_Buffer);
-  client.publish(Topic_2,Temp_Buffer);
-  memset(Temp_Buffer,0,strlen(Temp_Buffer));
-
-  dtostrf(temperature, 1, 0, Temp_Buffer);
-  client.publish(Topic_3,Temp_Buffer);
-  memset(Temp_Buffer,0,strlen(Temp_Buffer));
-
-
+  char temp_string[100];
+  kaka.toCharArray(temp_string,kaka.length());
+  client.publish(Topic_1,temp_string,kaka.length());
 }
 void MQTT_loop()
 {
