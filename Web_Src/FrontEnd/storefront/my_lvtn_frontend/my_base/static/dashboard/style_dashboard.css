@@ -4,15 +4,21 @@
     height: auto;
     width: 300px;
 } */
-@import url(http://fonts.googleapis.com/css?family=Roboto:400,700,300);
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+
 .dashboard{   
     background-color: aquamarine;
     float: right;
     margin-left: -8%;
     margin-top: 3%;
-    height: 650px;
+    padding-bottom: 15%;
+    height: 100%;
     width: 75%;
+    border-bottom: 10px solid black;
 }
+
+/* COMMON_VALUE */
 .curent_value{
     margin: 0;
     padding: 0;
@@ -27,16 +33,12 @@
     font-size: large;
     
 }
-
 .temperature h1{
     font-size: 95%;
     float:right;
     height: 0%;
     width: 20%;
     position: relative;left: -40%;
-    margin-top:10% ;
-    /* margin-right: 30%; */
-    /* padding-left: 10%; */
     color:blue ;
 }
 .temperature h2{
@@ -46,8 +48,6 @@
     width: 20%;
     position: relative;left: -15%;
     margin-top:17% ;
-    /* margin-top: 15%; */
-    /* margin-left: 30%; */
     color:blue ;
 }
 
@@ -70,24 +70,22 @@
     margin-top:10% ;
 }
 .PH h2{
-    font-size: 85%;
+    font-size: medium;
     float:right;
     height: 0;
     width: 20%;
     position: relative;left: -15%;
     margin-top:17% ;
-    /* margin-top: 15%; */
-    /* margin-left: 30%; */
     color:blue ;
 }
 
 .TDS{
     background-color: aliceblue;
-    height: 39%;
-    width: 20%;
-    position: absolute;left: 55%;top:15%;
-    /* margin-top: 2%;
-    margin-right: -10%; */
+    height: 222%;
+    width: 25%;
+    float: right;
+    margin-right: 36%;
+    margin-top: -24%;
     border-radius: 15%;
     font-size: large;
 }
@@ -97,34 +95,133 @@
     width: 20%;
     float: right;
     color:blue ;
-    position: relative;left: -20%;top: 28%;
-    margin-top:10% ;
+    position: relative;left: -33%;
+    margin-top:40% ;
 }
 .TDS h2{
     font-size: 85%;
     float:right;
     height: 0;
     width: 20%;
-    position: relative;left: -2%;top: 30%;
-    margin-top:17% ;
-    /* margin-top: 15%; */
-    /* margin-left: 30%; */
+    position: relative;left: -14%;
+    margin-top:50% ;
     color:blue ;
 }
 
-.bottle_curent_value
+/* VOLUME_VALUE */
+.volume
 {
-    height: 100%;
-    width: 58%;
-    background-color: antiquewhite;
-    position: relative; left: 8%;
-    margin-top: 6%;
+    margin-top: 10%;
+    width: 90%;
+    height: 40px;
 }
 
 .Acid{
-    background-color: red;
-    height: 100%;
-    width: 25%;
+    display: flex;
+    flex-direction: column;
+    margin-top: 5%;
+    margin-left: 8%;
+    width: 15%;
+    height: 500%;
+    border-radius: 8px;
+    background-color: bisque;  
+    align-items: center;
+    row-gap: 10px;
+
+
+}
+.Base
+{
+    position: relative;left: 24%;top: -500%;
+    display: flex;
+    flex-direction: column;
+    width: 15%;
+    height: 500%;
+    border-radius: 8px;
+    background-color: bisque;  
+    align-items: center;
+    row-gap: 10px;
+}
+.Nutri_A
+{
+    position: relative;left: 40%;top: -1000%;
+    display: flex;
+    flex-direction: column;
+    width: 15%;
+    height:500%;
+    border-radius: 8px;
+    background-color: bisque;  
+    align-items: center;
+    row-gap: 10px;
+}
+
+.Nutri_B
+{
+    position: relative;left: 56%;top: -1500%;
+    display: flex;
+    flex-direction: column;
+    width: 15%;
+    height:500%;
+    border-radius: 8px;
+    background-color: bisque;  
+    align-items: center;
+    row-gap: 10px;
+}
+.circular-progress{
+    position: relative;
+    height: 80%;
+    width: 80%;
+    margin-top: 30px;
+    border-radius: 50%;
+    background:conic-gradient(purple 3.6deg, rgba(153, 151, 125, 0.671) 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.circular-progress::before{
+    content: "";
+    position: absolute;
+    height: 80%;
+    width: 80%;
+    border-radius: 50%;
+    background-color: bisque;
+}
+.progress-value{
+    position: relative;
+    font-size: 20px;
+    font-weight: 600;
+    color: purple;
+}
+.text{
+    font-size: 30px;
+    font-weight: 700;
+    color: #606060;
+}
+
+/* USER_INFOR */
+.User_infor {
+    position: relative;top: 100%;
+    text-align: center;
+    align-items: center;
+    float: right;
+    height: 20%;
+    width:20%;
+    margin-top: -39%;
+    /* margin-right: 5%; */
+    padding-bottom: 20%;
+    background-color: blueviolet;
+    border-radius: 15%;
 }
 
 
+.User_infor .device_status
+{
+    float: right;
+    align-items: center;
+    width: 10%;
+    height: 10%;
+    background-color: red;
+    border-radius: 15%;
+    row-gap: 10px;
+    margin: 10%;
+}

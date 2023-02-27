@@ -12,8 +12,6 @@
     <link rel="stylesheet" type="text/css" href="{% static 'chart/style_chart.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'about/style_about.css' %}">
 
-    
-
     {% url 'dashboard' as my_dashboard %}
     {% url 'device' as my_device %}
     {% url 'chart' as my_chart %}
@@ -29,11 +27,11 @@
         
         <div class="menu">
             <ul>
-                <li><a href="{% url 'dashboard' %}"><img src="{% static "/home/icon/dashboard.png" %}"> DASHBOARD</a>
+                <li><a href="{% url 'dashboard' %}"><img src="{% static "home/icon/dashboard.png" %}">DASHBOARD</a>
                 </li>
-                <li><a href="{% url 'device' %}"><img src="{% static "/home/icon/device.png" %}"> DEVICE</a> </li>
-                <li><a href="{% url 'chart' %}"><img src="{% static "/home/icon/chart.png" %}"> CHART</a> </li>
-                <li><a href="{% url 'about' %}"><img src="{% static "/home/icon/about.png" %}"> ABOUT</a> </li>
+                <li><a href="{% url 'device' %}"><img src="{% static "home/icon/device.png" %}">DEVICE</a> </li>
+                <li><a href="{% url 'chart' %}"><img src="{% static "home/icon/chart.png" %}">CHART</a> </li>
+                <li><a href="{% url 'about' %}"><img src="{% static "home/icon/about.png" %}">ABOUT</a> </li>
             </ul>
         </div>
 
@@ -48,9 +46,9 @@
     {% if request.path == my_dashboard %}
     <div class="dashboard">
         {% block dashboard %}
-
-        {% endblock %}
         
+        {% endblock %}
+        <script src = "{% static 'dashboard/script_dashboard.js' %}"></script>
     </div>
     {% endif %}
 
@@ -78,7 +76,6 @@
     </div>
     {% endif %}
 
- 
 
 
 </body>

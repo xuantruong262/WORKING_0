@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 # Create your views here.
-
+test_value = 0
 def base(request):
     return render(request,'home/base.html')
 
