@@ -6,78 +6,77 @@
 <div class="curent_value">
     <!-- TEMPERATURE -->
     <div class="value">
+
         <div class="main_value">
+
             <div class="tem_and_ph">
-                 <div class="temperature">
-                <!-- <h1>temperature</h1>
-            <h2>(value)</h2>
-            <img src="{% static "home/icon/temperature.png" alt="icon_temperature" %}"
-                style="width:15%; height: 15%; margin:10% 20% 10% 20%;"> -->
+                <div class="temperature">
+                    <img src="{% static "home/icon/temperature.png" alt="icon_temperature" %}" style = "height: 40%;width: 40%;margin-top: 13%;">
+                    <span class="display" style="font-size: 60%;margin-top: 12%;">
+                        <h1>temperature</h1>
+                        <p>(value)</p>
+                    </span>         
                 </div>
-            <!-- PH -->
+                <!-- PH -->
                 <div class="PH">
-                <!-- <h1>PH</h1>
-            <h2>(value)</h2>
-            <img src="{% static "home/icon/ph.png" alt="icon_PH" %}"
-                style="width:15%; height: 15%; margin:10% 20% 10% 20%;"> -->
+                    <img src="{% static "home/icon/ph.png" alt="icon_temperature" %}" style = "height: 40%;width: 40%;margin-top: 13%;">
+                    <span class="display" style="font-size: 60%;margin-top: 12%;margin-left: 3%;">
+                        <h1>PH</h1>
+                        <p>(value)</p>
                 </div>
-        </div>
+            </div>
+
             <!-- TDS -->
             <div class="TDS">
-                <!-- <h1>TDS</h1>
-            <h2>(value)</h2>
-            <img src="{% static "home/icon/TDS.png" alt="icon_TDS" %}"
-                style="width:30%; height: 30%; margin-top:35%;margin-left:10%;margin-bottom: 30%;"> -->
+                <img src="{% static "home/icon/TDS.png" alt="icon_temperature" %}" style = "height: 40%;width: 40%;margin-top: 30%;">
+                <span class="display" style="font-size: 60%;margin-top: 35%;margin-left: 6%;">
+                    <h1>TDS</h1>
+                    <p>(value)</p>
             </div>
         </div>
         <!-- USER_INFORMATION -->
         <div class="User_infor">
-            <!-- <h1>xuantruong</h1>
-        <div class="device_status">
-            <img src="{% static "home/icon/hydroponic.png" alt="icon_hydroponic" %}"
-            style="width:30%; height: 30%;">
-             <h2>My Devices</h2>
-            <h3>123456789</h3> -->
+            <h1>vuxuantruong</h1>
+            <div class="device_status">
+                <img src="{% static "home/icon/hydroponic.png" alt="icon_hydroponic" %}" width="50%" height="50%">  
+                <p>status</p>   
+            </div>
+            <h2>My devices
+                <p>123456789</p>
+            <h2>
         </div>
     </div>
-
-
     <!-- VOLUME_BOTTLE -->
     <div class="volume">
-        <!-- <div class="Acid">
-            <div class="circular-progress" id="acid_progress">
-                <span class="progress-value" id="acid_volume">60</span>
-            </div>
-            <span class="text"> ACID</span>
+        <div class="Acid">
+        <div class="circular-progress" id="acid_progress">
+            <span class="progress-value" id="acid_volume">60</span>
         </div>
-
-        <div class="Base">
-            <div class="circular-progress" id="base_progress">
-                <span class="progress-value" id="base_volume">80</span>
-            </div>
-
-            <span class="text"> Base</span>
-        </div>
-
-        <div class="Nutri_A">
-            <div class="circular-progress" id="nutriA_progress">
-                <span class="progress-value" id="nutriA_volume">50</span>
-            </div>
-
-            <span class="text"> Nutri_A</span>
-        </div>
-
-        <div class="Nutri_B">
-            <div class="circular-progress" id="nutriB_progress">
-                <span class="progress-value" id="nutriB_volume">55</span>
-            </div>
-            <span class="text"> Nutri_B</span>
-        </div> -->
+        <span class="text"> ACID</span>
     </div>
-</div>
 
+    <div class="Base">
+        <div class="circular-progress" id="base_progress">
+            <span class="progress-value" id="base_volume">80</span>
+        </div>
 
+        <span class="text"> Base</span>
+    </div>
 
+    <div class="Nutri_A">
+        <div class="circular-progress" id="nutriA_progress">
+            <span class="progress-value" id="nutriA_volume">50</span>
+        </div>
 
+        <span class="text"> Nutri_A</span>
+    </div>
+
+    <div class="Nutri_B">
+        <div class="circular-progress" id="nutriB_progress">
+            <span class="progress-value" id="nutriB_volume">55</span>
+        </div>
+        <span class="text"> Nutri_B</span>
+    </div> 
+    </div>
 </div>
 {% endblock %}

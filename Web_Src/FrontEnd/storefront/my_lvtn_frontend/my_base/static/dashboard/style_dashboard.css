@@ -8,7 +8,7 @@
 
 
 .dashboard{   
-    background-color: aquamarine;
+    background-color: whitesmoke;
     width: 105%;
     height: 100%;
     border: 5px dashed purple;
@@ -25,61 +25,196 @@
 }
 .curent_value .value
 {
+    display: flex;
     width: 93%;
     height: 50%;
-    background-color: cornflowerblue;
+    /* background-color: cornflowerblue; */
     margin-top:3%;
     margin-left: 5%;
 }
 .curent_value .value .main_value
 {
     display:flex;
-    height: 100%;
-    width: 70%;
-    background-color: green;
+    height: 110%;
+    width: 130%;
+    border-radius: 5%;
+    background-color:lightcyan;
 }
 .curent_value .value .main_value .tem_and_ph
 {
-    margin-top: 6.5%;
-    width: 100%;
-    height: 80%;
-    display: block;
+    margin-left: 10%;
+    position: relative;top: 22%;
+    width: 80%;
+    height: 100%;
+    /* display: block; */
 }
 .curent_value .value .main_value .tem_and_ph .temperature
 {
-    height: 50%;
-    margin-top: 10%;
+    display: flex;
+    border-radius: 20%;
+    height: 33%;
     width: 100%;
-    background-color: bisque;
+    background-color: whitesmoke;
+    box-shadow: 5px 5px 5px grey;
 }
 .curent_value .value .main_value .tem_and_ph .PH
 {
-    height: 50%;
+    display: flex;
+    border-radius: 20%;
+    margin-top: 6%;
+    height: 33%;
     width: 100%;
-    background-color: darkslategrey;
+    background-color: whitesmoke;
+    box-shadow: 5px 5px 5px grey;
 }
 .curent_value .value .main_value .TDS
 {
-    margin-top: 15%;
-    background-color: royalblue;
-    height: 74%;
-    width: 100%;
+    display: flex;
+    border-radius: 20%;
+    position: relative;top: 22%;
+    background-color: whitesmoke;
+    margin-left: 2%;
+    margin-right: 2%;
+    height: 70%;
+    width: 70%;
+    box-shadow: 5px 5px 5px grey;
 } 
 
+.curent_value .User_infor
+{
+    height: 110%;
+    border-radius: 10%;
+    font-size: 50%;
+    align-items: center;
+    text-align: center;
+    flex-direction: column;
+    background-color:lightcyan;
+    margin-left: 3%;
+    margin-right: 3%;
+    margin-top: 0%;
+    box-shadow: 5px 5px 5px grey;
+    /* position: relative;left: 70%; */
+}
+
+.curent_value .User_infor h1,h2{
+    margin-top: 20%;
+}
+.curent_value .User_infor .text_id
+{
+    font-size: 100%;
+    height: 100%;
+    text-align: center;
+    align-items: center;
+    /* position: relative;left: 70%; */
+}
+
+.curent_value .User_infor .device_status
+{
+    background-color: aquamarine;
+    text-align: center;
+    margin-left: 10%;
+    margin-right: 10%;
+    margin-top: 10%;
+    font-size: 300%;
+    border-radius: 10%;
+    padding-top: 20%;
+    box-shadow: 5px 5px 5px grey;
+    /* position: relative;left: 70%; */
+}
 .curent_value .volume
 {
+    display: flex;
     width: 65%;
     height: 30%;
-    background-color: red;
+    background-color:lightcyan;
     margin-top:5%;
     margin-left: 5%;
     
 }
-
-
-/* .curent_value .User_infor
+.curent_value .volume .text
 {
+    font-size: 100%;
+}
+.Acid{
+    display: flex;
+    flex-direction: column;
+    width: 24%;
+    height: 100%;
+    border-radius: 10%;
+    background-color: bisque;  
+    align-items: center;
+    row-gap: 10px;
+    box-shadow: 5px 5px 5px grey;
+}
+.Base
+{
+    /* position: relative;left: 24%;top: -500%; */
+    display: flex;
+    flex-direction: column;
+    width: 24%;
+    height: 100%;
+    border-radius: 10%;
+    background-color: bisque;  
+    align-items: center;
+    row-gap: 10px;
+    margin-left: 1%;
+    box-shadow: 5px 5px 5px grey;
+}
+.Nutri_A
+{
+    display: flex;
+    flex-direction: column;
+    width: 24%;
+    height:100%;
+    border-radius: 10%;
+    background-color: bisque;  
+    align-items: center;
+    row-gap: 10px;
+    margin-left: 1%;
+    box-shadow: 5px 5px 5px grey;
+}
 
-
-} */
+.Nutri_B
+{
+    display: flex;
+    flex-direction: column;
+    width: 24%;
+    height:100%;
+    border-radius: 10%;
+    background-color: bisque;  
+    align-items: center;
+    row-gap: 10px;
+    margin-left: 1%;
+    box-shadow: 5px 5px 5px grey;
+}
+.circular-progress{
+    position: relative;
+    height: 80%;
+    width: 80%;
+    margin-top: 30px;
+    border-radius: 50%;
+    background:conic-gradient(purple 3.6deg, rgba(153, 151, 125, 0.671) 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.circular-progress::before{
+    content: "";
+    position: absolute;
+    height: 80%;
+    width: 80%;
+    border-radius: 50%;
+    background-color: bisque;
+}
+.progress-value{
+    position: relative;
+    font-size: 20px;
+    font-weight: 600;
+    color: purple;
+}
+.text{
+    font-size: 30px;
+    font-weight: 700;
+    color: #606060;
+}
 
