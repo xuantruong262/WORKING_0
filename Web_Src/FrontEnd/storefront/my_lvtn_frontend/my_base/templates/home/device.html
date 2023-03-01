@@ -1,4 +1,33 @@
 {% extends 'home/base.html' %}
+
 {% block devices %}
-    <h3>THIS IS DEVICE PAGE</h3>
+{% load static %}
+
+<div class="setting">
+    <div class="profile">
+        <div class="add_profile"></div>
+        <div class="select_profile"></div>
+    </div>
+
+    <div class="setting_manual">
+
+    </div>
+</div>
+
+<div class="add_devices">
+    <div class="add_devices_local">
+        <h1 style="font-size: 100%; padding-top: 8%;padding-bottom: 12%;">Add new device</h1>
+        <form action="test" method="post" name="add_dv">
+            {% csrf_token %}
+            Device ID:
+            <input type="text" name="device_id" placeholder="Device ID..." /> <br />
+            Set name of device:
+            <input type="text" name="device_name" placeholder="Device name..." /> <br />
+            <button type="submit",>Add device</button> 
+            <!-- <input type="submit" name="add_device" value="Add_device" />  -->
+        </form>
+    </div>
+
+</div>
+
 {% endblock %}

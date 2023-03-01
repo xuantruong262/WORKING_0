@@ -43,6 +43,19 @@
 
 
     <!-- SUB PAGE -->
+    {% if request.path == my_device %}
+    
+    <div class="devices">
+        <!-- {% if active_path == 1 %}
+            <h1 style="height: 300%; color: red;">HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH</h1>
+        {% endif %} -->
+           
+        {% block devices %}
+
+        {% endblock %}
+    </div>
+
+    {% endif %}
     {% if request.path == my_dashboard %}
     <div class="dashboard">
         {% block dashboard %}
@@ -52,16 +65,11 @@
     </div>
     {% endif %}
 
-    {% if request.path == my_device %}
-    <div class="devices">
-        {% block devices %}
 
-        {% endblock %}
-    </div>
-    {% endif %}
 
     {% if request.path == my_chart %}
     <div class="chart">
+        {{active_path}}
         {% block chart %}
 
         {% endblock %}
