@@ -1928,7 +1928,7 @@ int main(void)
  80013a4:	2100      	movs	r1, #0
  80013a6:	4821      	ldr	r0, [pc, #132]	; (800142c <main+0x154>)
  80013a8:	f003 f89c 	bl	80044e4 <memset>
-		  sprintf(buffer_send,"{'ID':'12345678','PH':'%.2f','TDS':'%.0f','Temp':'%.2f'}",PH,TDS,Temperature);
+		  sprintf(buffer_send,"{\"ID\":\"12345678\",\"PH\":\"%.2f\",\"TDS\":\"%.0f\",\"Temp\":\"%.2f\"}",PH,TDS,Temperature);
  80013ac:	4b1c      	ldr	r3, [pc, #112]	; (8001420 <main+0x148>)
  80013ae:	681b      	ldr	r3, [r3, #0]
  80013b0:	4618      	mov	r0, r3

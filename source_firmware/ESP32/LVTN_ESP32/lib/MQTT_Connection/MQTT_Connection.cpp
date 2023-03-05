@@ -66,8 +66,8 @@ void MQTT_Init()
 void publish_data()
 {
   char temp_string[100];
-  kaka.toCharArray(temp_string,kaka.length());
-  client.publish(Topic_1,temp_string,kaka.length());
+  kaka.toCharArray(temp_string,kaka.length()+1);
+  client.publish(Topic_1,temp_string,kaka.length()+1);
 }
 void MQTT_loop()
 {

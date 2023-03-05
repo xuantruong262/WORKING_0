@@ -64,7 +64,7 @@ void loop() {
   // }
   if(Serial2.available())
   {
-    kaka = Serial2.readString();   
+    kaka = Serial2.readString(); 
     publish_data();
   }
   esp_task_wdt_reset();

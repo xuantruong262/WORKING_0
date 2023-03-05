@@ -256,7 +256,7 @@ int main(void)
 		  TDS = 0.3846 * (float)ADC_Value[1];
 		  Temperature = Get_Temperature_DS18B20();
 		  memset(buffer_send,0,strlen(buffer_send));
-		  sprintf(buffer_send,"{'ID':'12345678','PH':'%.2f','TDS':'%.0f','Temp':'%.2f'}",PH,TDS,Temperature);
+		  sprintf(buffer_send,"{\"ID\":\"12345678\",\"PH\":\"%.2f\",\"TDS\":\"%.0f\",\"Temp\":\"%.2f\"}",PH,TDS,Temperature);
 		  count =0;
 	  }
 	  count++;
