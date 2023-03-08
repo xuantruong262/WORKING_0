@@ -1,4 +1,38 @@
 {% extends 'home/base.html' %}
 {% block chart %}
-    <h4>THIS IS CHART PAGE</h4>
+{% load static %}
+
+<div class="my_chart" style="background-color: whitesmoke;">
+    <div class="select_time" style="display: block;">
+        <h1>Decvice ID:123456789</h1>
+        <div class="history_time" >
+            <form action="rHistory" method="post" id="rHistory"  style="display: flex; margin-top: 1%;">
+                {% csrf_token %}
+                <h2 style="color: black">Date: </h2>
+                <input type="text" name="rDate" placeholder="Date..." /> <br />           
+                <input type="text" name="rMonth" placeholder="Month..." /> <br />
+                <input type="text" name="rYear" placeholder="Year..." /> <br />
+                <button type="submit">Confirm</button>
+                <button type="submit">Today</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="chart_display">
+        <div class="PH_chart">          
+            <canvas id = "ph_canvas" style="height: 100%;"></canvas>
+        </div>
+
+        
+        <div class="TDS_chart">
+            <canvas id = "tds_canvas" style="height: 100%;"></canvas>
+        </div>
+
+        <div class="TEMP_chart">
+            <canvas id = "temp_canvas" style="height: 100%;"></canvas>
+        </div>
+    </div>
+    <button onclick="update_chart()"
+    style="width: 50%;min-height: 10%;margin:5% 25%;background-color: dodgerblue;color: azure;border-radius: 2%;">Submit</button>
+</div>
 {% endblock %}

@@ -5,26 +5,140 @@
 
 <div class="setting">
     <div class="profile">
-        <div class="add_profile"></div>
-        <div class="select_profile"></div>
+        <!-- ADD PROFILE -->
+        <div id="ID" style="width: 100%;height:1%;font-size: 100%; padding-top: 1%;padding-left: 4%;">
+            <h1 style="font-size: 100%;color: aliceblue;">Device ID: 123456789</h1>
+        </div>
+        <h3 style="font-size: 100%;padding-top: 8%;text-align: center;"> Curent setting is Manual</h3>
+        <h3 style="font-size: 100%;padding-top: 5%;margin-left: 4%;"> Choose setting for your device using your profile or recommend profile</h3>
+        <!-- CONFIG_PROFILE -->
+        <div class="config_profile" style="display: flex;margin-top: 1%;">
+            <div class="add_profile">
+                <h1>Click button below to add your profile</h1>
+                <button onclick="open_teminal()">Add device</button>
+                <dialog id="hopthoai"
+                    style="height: 65%;width: 20%;margin: auto;margin-top: -15%;border: 5px solid orange;border-radius: 2%;">
+                    <form action="type_profile" method="post" id="add_pf">
+                        {% csrf_token %}
+                        <h2>Change your profile</h2>
+                        <div class="type">
+                            <h3 style="margin-top: 10%;">Type</h3>
+                            <input type="text" name="device_id" placeholder="Select type of plan..."
+                                style="height: 40px;" /> <br />
+                        </div>
+
+                        <div class="set_ph">
+                            <h3>PH value</h3>
+                            <input type="text" name="device_id" placeholder="PH..." style="height: 40px;" /> <br />
+                        </div>
+
+                        <div class="set_ph_thr">
+                            <h3>PH threshold</h3>
+                            <input type="text" name="device_id" placeholder="PH threshold..." style="height: 40px;" />
+                            <br />
+                        </div>
+
+                        <div class="set_tds">
+                            <h3>TDS value</h3>
+                            <input type="text" name="device_id" placeholder="TDS.." style="height: 40px;" /> <br />
+                        </div>
+
+                        <div class="set_tds_thr">
+                            <h3>TDS threshold</h3>
+                            <input type="text" name="device_id" placeholder="TDS threshold..." style="height: 40px;" />
+                            <br />
+                        </div>
+                        <div class="set_nutri_ratio">
+                            <h3>Nutri ratio</h3>
+                            <input type="text" name="device_id" placeholder="Nutri ratio..." style="height: 40px;" />
+                            <br />
+                        </div>
+                    </form>
+                    <div class="bt" style="display: flex;">
+                        <button onclick="open_teminal()"
+                            style="height: 10%;width: 15%;margin-left: 20%;">Cancel</button>
+                        <button onclick="save_teminal()" style="height: 10%;width: 15%;margin-left: 20%;">Save</button>
+                    </div>
+                </dialog>
+                <script>
+                    function open_teminal() {
+                        let x = document.getElementById("hopthoai");
+                        if (x.open == true) {
+                            x.open = false;
+                        } else {
+                            x.open = true;
+                        }
+                    }
+                    function save_teminal() {
+                        document.getElementById("add_pf").submit();
+                    }
+                </script>
+            </div>
+            <!-- SELECT PROFILE -->
+            <div class="select_profile">
+                <h1>Recomment profile</h1>
+                <select name="plant" id="plant" style="width: 95%;height: 30%;border-radius: 5%;">
+                    <optgroup label="plant">
+                        <option value="Rau_Salad">Rau_Salad</option>
+                        <option value="Rau_den">Rau_den</option>
+                        <option value="Rau_cai">Rau_cai</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+
+
+
+
+    </div>
+    <!-- SET POINT MANUAL -->
+    <div class="set_point" style="display: block;align-items: center;">
+        <h1 style="text-align: center;font-size:100%; color: aliceblue;">SETTING VALUE MANUAL</h1>
+        <form action="sp" method="post" id="add_sp" style="display: block;padding-top: 5%;">
+            {% csrf_token %}
+
+            <div id="r1" style="display: flex;">
+                <h2>PH:</h2>
+                <input type="text" name="device_id" placeholder="Device ID..." /> <br />
+                <h2>PH_threshold:</h2>
+                <input type="text" name="device_name" placeholder="Device name..." /> <br />
+            </div>
+
+            <div id="r2" style="display: flex;">
+                <h2>TDS:</h2>
+                <input type="text" name="device_id" placeholder="Device ID..." /> <br />
+                <h2>TDS_threshold:</h2>
+                <input type="text" name="device_name" placeholder="Device name..." /> <br />
+            </div>
+            <div id="r3" style="display: flex; margin-left: 20%;">
+                <h2>Nutri ratio:</h2>
+                <input type="text" name="device_id" placeholder="Device ID..." /> <br />
+            </div>
+
+        </form>
+        <button onclick="set_point_manual()"
+            style="width: 50%;min-height: 10%;margin:5% 25%;background-color: dodgerblue;color: azure;border-radius: 2%;">Submit</button>
+        <script>
+            function set_point_manual() {
+                document.getElementById("add_sp").submit();
+            }
+        </script>
     </div>
 
-    <div class="setting_manual">
 
-    </div>
+
 </div>
 
-<div class="add_devices">
-    <div class="add_devices_local">
+<div class="add_deviceID" style="display: block; align-items: center;">
+    <div class="add_deviceID_local">
         <h1 style="font-size: 100%; padding-top: 8%;padding-bottom: 12%;">Add new device</h1>
-        <form action="test" method="post" name="add_dv">
+        <form action="test" method="post" name="add_dv" style="align-items: center;text-align: center;">
             {% csrf_token %}
-            Device ID:
+            <h2 style=" margin: 5% 0 0 23%;text-align: left;color: black;font-size: 100%;">Device ID:</h2>
             <input type="text" name="device_id" placeholder="Device ID..." /> <br />
-            Set name of device:
+            <h2 style="margin: 5% 0 0 23%;color: black;font-size: 100%;text-align: left;">Set name of device:</h2>
             <input type="text" name="device_name" placeholder="Device name..." /> <br />
-            <button type="submit",>Add device</button> 
-            <!-- <input type="submit" name="add_device" value="Add_device" />  -->
+            <button type="submit" style="margin-top: 5%;width: 30%;height: 30px;background-color: rgb(255, 178, 127);border-radius: 20%;">Add device</button>
         </form>
     </div>
 
