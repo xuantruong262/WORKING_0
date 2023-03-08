@@ -1,0 +1,162 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="./assets/css/main.css">
+    <link rel="stylesheet" href="./assets/css/base.css">
+    <link rel="stylesheet" href="./assets/css/grid.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/fonts/fontawesome-free-6.2.1-web/css/all.min.css">
+    <title>Document</title>
+</head>
+<body>
+<!-- head -->
+    <div class="app">
+        <header class="header">
+            <div class="grid wide">
+                <div class="header__cont">
+                    <div class="header__logo hide-on-mobile-tablet">
+                        <img src="./assets/img/Logo1.jpg" alt="Logo" class="header__logo-img">
+                    </div>
+                    <div class="header__name">
+                        <p class="header__name-namesystem">Automatic Fertigation Machine Dosing</p>
+                    </div> 
+                </div>
+            </div>
+        </header>
+<!-- body -->
+        <div class="app__container">
+            <div class="grid wide">
+                <div class="row app__content">
+                    <div class="col l-2 m-0 c-0">
+                        <div class="sidebar">
+                            <h3 class="sidebar__heading">
+                                <i class="sidebar__heading-icon fa-solid fa-list"></i>
+                                Danh mục
+                            </h3>
+                            <ul class="sidebar__list">
+                                <li class="sidebar__item">                                   
+                                    <a href="#" class="sidebar__item-btn">
+                                        <i class="sidebar__item-icon fa-solid fa-house"></i>
+                                        Dashboard
+                                    </a>
+                                </li>
+                                <li class="sidebar__item">
+                                    <a href="#" class="sidebar__item-btn">
+                                        <i class="sidebar__item-icon fa-solid fa-file"></i>
+                                        Device
+                                    </a>
+                                </li>
+                                <li class="sidebar__item">
+                                    <a href="#" class="sidebar__item-btn">
+                                        <i class="sidebar__item-icon fa-solid fa-chart-simple"></i>
+                                        Chart
+                                    </a>
+                                </li>                               
+                                <li class="sidebar__item">
+                                    <a href="#" class="sidebar__item-btn">
+                                        <i class="sidebar__item-icon fa-solid fa-circle-info"></i>
+                                        Infomation
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col l-8 m-12 c-12">
+                        <div class="dashboard">
+                            <div class="grid wide">
+                                <div class="row curent_value">
+                                    <div class="col l-4 m-6 c-6">
+                                        <div class="value_temperature">
+                                            <img class="icon_temperature" src="assets/img/temperature.png" alt="Temperature">
+                                            <span class="display">
+                                                <h1>Temperature</h1>
+                                                <h2 id="Temp_value"  style="color: black;"></h2>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col l-4 m-6 c-6">
+                                        <div class="value_PH">
+                                            <img class="icon_PH" src="assets/img/ph.png" alt="PH">
+                                            <span class="display">
+                                                <h1>PH</h1>
+                                                <h2 id="PH_value" style="color: black;"></h2>
+                                        </div>
+                                    </div>
+
+                                    <div class="col l-4 m-6 c-6">
+                                        <div class="value_TDS">
+                                            <img src="./assets/img/TDS.png" class="icon_TDS">
+                                            <span class="display">
+                                                <h1>TDS</h1>
+                                                <h2 id="TDS_value"  style="color: black;"></h2>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row current_volume">
+                                    <div class="col l-3 m-6 c-6">
+                                        <div class="Acid">
+                                            <div class="circular-progress" id="acid_progress">
+                                                <span class="progress-value" id="acid_volume">60</span>
+                                            </div>
+                                            <span class="volume_text"> ACID</span>
+                                        </div>
+                                    </div>
+                                    <div class="col l-3 m-6 c-6">
+                                        <div class="Base">
+                                            <div class="circular-progress" id="base_progress">
+                                                <span class="progress-value" id="base_volume">80</span>
+                                            </div>
+                                
+                                            <span class="volume_text"> Base</span>
+                                        </div>
+                                    </div>
+                                    <div class="col l-3 m-6 c-6">
+                                        <div class="Nutri_A">
+                                            <div class="circular-progress" id="nutriA_progress">
+                                                <span class="progress-value" id="nutriA_volume">50</span>
+                                            </div>
+                                
+                                            <span class="volume_text"> Nutri_A</span>
+                                        </div>
+                                    </div>
+                                    <div class="col l-3 m-6 c-6">
+                                        <div class="Nutri_B">
+                                            <div class="circular-progress" id="nutriB_progress">
+                                                <span class="progress-value" id="nutriB_volume">55</span>
+                                            </div>
+                                            <span class="volume_text"> Nutri_B</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col l-2 m-0 c-0">
+                        <div class="status">
+                            <div class="status__user">
+                                <h1 class="name__user">vuxuantruong</h1>
+                                <h2 class="device__user">My Device</h2>
+                                <p class="device_number_user">1234567</p>
+                            </div>
+                            <div class="status__device">
+                                <img class="status__img" src="./assets/img/hydroponic.png" alt="drawing">
+                                <p class="status_on_off">Online</p>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>                
+</body>
+</html>

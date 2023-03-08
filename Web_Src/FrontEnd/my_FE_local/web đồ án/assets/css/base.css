@@ -1,0 +1,15 @@
+:root{
+    --header-height:80px;
+    --footer-height:30px;
+}
+
+*{
+    box-sizing: inherit;
+}
+
+html{
+    font-size: 62.5%;
+    line-height: 1.8rem;
+    font-family: 'Roboto', sans-serif;
+    box-sizing: border-box;
+}

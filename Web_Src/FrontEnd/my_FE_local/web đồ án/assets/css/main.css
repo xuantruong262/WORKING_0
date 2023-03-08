@@ -1,0 +1,230 @@
+.app{
+    overflow: hidden;
+}
+/*header*/
+.header{
+    height: var(--header-height);
+    background-image: linear-gradient(0, #195caf, #4285d6);
+}
+.header__cont{
+    display: flex;
+    align-items: center;
+}
+.header__logo-img{
+    width: 120px;
+    align-items: center;
+}
+.header__logo{
+    margin-top: 7px;
+    flex-grow: 4;
+}
+.header__name{
+    margin-top: 7px;
+    flex-grow: 6;
+}
+.header__name-namesystem{
+    font-size: 2.5rem;
+    font-weight: 400;
+    align-items: center;
+}
+ /* body-sidebar */
+.app__container{
+    background-color: #b7c9e4;  
+}
+.app__content{
+    padding-top: 36px;
+}
+.sidebar{
+    background-color: white;
+    border-radius: 10px;
+}
+.sidebar__heading{
+    font-size: 1.8rem;
+    color: black;
+    padding: 12px 16px;
+    border-bottom: 1px solid #ccc;
+}
+.sidebar__heading{
+    font-size: 1.4rem;
+    margin-right: 4px;
+    position: relative;
+    top: -1px;
+    margin-top: 0;
+}
+.sidebar__list{
+    padding: 0 0 8px 0;
+    list-style: none;
+    margin-left: 9px;
+}
+.sidebar__item{
+    margin: 8px 0;
+}
+.sidebar__item-btn{
+    position: relative;
+    display: block;
+    text-decoration: none;
+    color: rgb(54, 51, 51);
+    font-size: 1.4rem;
+    padding: 4px 16px;
+    transition: right linear 0.1s ;
+    right: 0;
+}
+.sidebar__item-btn:hover{
+    color: rgb(23, 127, 197);
+    right: -4px;
+}
+.sidebar__item-icon{
+    margin-right: 6px;
+}
+.sidebar__item--avtive{
+    color: rgb(23, 127, 197);
+}
+/* body-dashboard */
+.dashboard{
+    background-color: white;
+    border-radius: 10px;
+}
+.value_temperature{
+    display: flex;
+    height: 300px;
+    border-radius: 20%;
+    background-color: whitesmoke;
+    align-items: center;
+    margin: 40px 0;
+}
+.value_PH{
+    height: 300px;
+    display: flex;
+    border-radius: 20%;
+    align-items: center;
+    margin: 40px 0;
+    background-color: whitesmoke;
+}
+.value_TDS{
+    height: 300px;
+    display: flex;
+    border-radius: 20%;
+    align-items: center;
+    margin: 40px 0;
+    background-color: whitesmoke;
+}
+.icon_temperature{
+    width: 100px;
+    height: 100px;
+}
+.icon_PH{
+    width: 100px;
+    height: 100px;
+}
+.icon_TDS{
+    height: 100px;
+    width: 100px;
+}
+.icon_hydroponic{
+    width: 100px;
+    height: 100px;
+}
+.Acid{
+    display: flex;
+    flex-direction: column;
+    border-radius: 10%;
+    background-color: bisque;
+    align-items: center;
+    row-gap: 10px;
+    margin: 12px 12px 40px;
+}
+.Base{
+    display: flex;
+    flex-direction: column;
+    border-radius: 10%;
+    background-color: bisque;  
+    align-items: center;
+    row-gap: 10px;
+    margin: 12px 12px 40px;
+}.Nutri_A{
+    display: flex;
+    flex-direction: column;
+    border-radius: 10%;
+    background-color: bisque;  
+    align-items: center;
+    row-gap: 10px;
+    margin: 12px 12px 40px;
+}.Nutri_B{
+    display: flex;
+    flex-direction: column;
+    border-radius: 10%;
+    background-color: bisque;  
+    align-items: center;
+    row-gap: 10px;
+    margin: 12px 12px 40px;
+}
+.circular-progress{
+    position: relative;
+    width: 80%;
+    height: 150px;
+    margin-top: 30px;
+    border-radius: 50%;
+    background:conic-gradient(rgb(123, 190, 212) 3.6deg, rgba(250, 215, 150, 0.671) 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.circular-progress::before{
+    content: "";
+    position: absolute;
+    height: 80%;
+    width: 80%;
+    border-radius: 50%;
+    background-color: bisque;
+}
+.progress-value{
+    position: relative;
+    font-size: 20px;
+    font-weight: 600;
+    color: purple;
+}
+.volume_text{
+    font-size: 1.4rem;
+    font-weight: 500;
+}
+
+
+/* body-status */
+.status{
+    border-radius: 10px;
+    background-color: #2a6ab8;
+    overflow: hidden;
+}
+.status__user{
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+}
+.name__user{
+    font-size: 1.4rem
+}
+.device__user{
+    font-style: italic;
+}
+.device_number_user{
+    font-size: 1.4rem;
+    margin-top: -10px;
+}
+.status__device{
+display: flex;
+   flex-direction: column;
+   align-items: center;
+}
+.status__img:hover {
+    box-shadow: 0 0 40px rgba(99, 166, 230, .6);
+    transition: box-shadow 0.3s ease-in-out;
+}
+.status__img{
+    width: 120px;
+    height: 200px;
+    box-shadow: 0 0 20px rgba(42, 126, 204, .9);
+}
+.status_on_off{
+    color: rgb(19, 231, 12);
+    font-size: 1.1rem;
+}
