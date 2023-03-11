@@ -121,6 +121,7 @@ typedef enum
 	Value,
 	Volume
 }Message_type;
+char buffer_send[100];
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
@@ -136,14 +137,15 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 void SEND_UART1(char *String)
 {
-	HAL_UART_Transmit(&huart1,(uint8_t*)String,strlen(String), 500);
+	HAL_UART_Transmit(&huart1,(uint8_t*)String,strlen(String), 200);
 }
 void Handle_value_send(Message_type tp)
 {
-	char msg_send[50];
+	char msg_send[100];
 	if(tp == Value)
 	{
-		sprintf(msg_send,"R:{s,%.2f,%d,%.2f,e}", PH,(int)TDS,Temperature);
+		memset(msg_send,0,strlen(msg_send));
+		sprintf(msg_send,"{\"ID\":\"123456789\",\"PH\":\"%.2f\",\"TDS\":\"%.0f\",\"Temp\":\"%.2f\"}",PH,TDS,Temperature);
 		SEND_UART1(msg_send);
 	}
 }
@@ -366,6 +368,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	 if(htim->Instance == htim4.Instance)
 	 {
 	   HAL_GPIO_TogglePin(test_pin_GPIO_Port,test_pin_Pin);
+	   Handle_value_send(Value);
 	 }
 }
 /*=====================================Interrupt_End=========================*/
@@ -409,7 +412,7 @@ int main(void)
   MX_ADC1_Init();
   MX_I2C1_Init();
   MX_TIM4_Init();
-  MX_IWDG_Init();
+//  MX_IWDG_Init();
   MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim4);
@@ -449,7 +452,6 @@ int main(void)
 		  HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
 		  PH = PH_Calculator(ph_a_value, ph_b_value, ADC_Value[0]);
 		  TDS = TDS_Calculator(tds_k_value, ADC_Value[1]);
-
 		  Temperature = Get_Temperature_DS18B20();
 		  time_read = 0;
 	  }
