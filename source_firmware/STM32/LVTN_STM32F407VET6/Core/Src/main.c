@@ -119,7 +119,8 @@ void delay_us(uint16_t time)
 typedef enum
 {
 	Value,
-	Volume
+	Volume,
+	WifiConfig,
 }Message_type;
 char buffer_send[100];
 
@@ -137,7 +138,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 void SEND_UART1(char *String)
 {
-	HAL_UART_Transmit(&huart1,(uint8_t*)String,strlen(String), 200);
+	HAL_UART_Transmit(&huart1,(uint8_t*)String,strlen(String), 1000);
 }
 void Handle_value_send(Message_type tp)
 {
@@ -147,6 +148,10 @@ void Handle_value_send(Message_type tp)
 		memset(msg_send,0,strlen(msg_send));
 		sprintf(msg_send,"{\"ID\":\"123456789\",\"PH\":\"%.2f\",\"TDS\":\"%.0f\",\"Temp\":\"%.2f\"}",PH,TDS,Temperature);
 		SEND_UART1(msg_send);
+	}
+	else if(tp == WifiConfig)
+	{
+		SEND_UART1("wificonfigmode");
 	}
 }
 /*=====================================PH,TDS_BEGIN=================================*/
@@ -373,7 +378,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 /*=====================================Interrupt_End=========================*/
 
+/*=====================================WIFI_CONFIG_Start=========================*/
+void Wifi_Config()
+{
+	Handle_value_send(WifiConfig);
+}
 
+/*=====================================WIFI_CONFIG_End=========================*/
 
 /* USER CODE END 0 */
 

@@ -26,6 +26,7 @@ extern void Save_SetPoint(Save_Flash_Type tp);
 extern float PH_Calculator(float A, float B, uint16_t adc);
 extern void  PH_Calibration();
 extern void TDS_Calibration();
+extern void Wifi_Config();
 extern float TDS_Calculator(float k , uint16_t adc);
 void Rotary_init()
 {
@@ -231,16 +232,30 @@ void LCD_Menu_2_3(uint8_t isCalib)
 		lcd_send_string("tds_400 or ph_900");
 	}
 }
-void LCD_Menu_2_4()
+
+void LCD_Menu_2_4_(uint8_t isWifi)
 {
-	lcd_send_cmd(0x80 | 0x02); //PH
-	lcd_send_string("Go to the link:");
-	lcd_send_cmd(0x80 | 0x42); //PH
-	lcd_send_string("setupwifi.com.vn");
-	lcd_send_cmd(0x80 | 0x16); //PH
-	lcd_send_string("Start");
-	lcd_send_cmd(0x80 | 0x56); //PH
-	lcd_send_string("End");
+	if(isWifi == 0)
+	{
+		lcd_send_cmd(0x80 | 0x02);
+		lcd_send_string("Go to the link:");
+		lcd_send_cmd(0x80 | 0x42);
+		lcd_send_string("setupwifi.com.vn");
+		lcd_send_cmd(0x80 | 0x16);
+		lcd_send_string("Start");
+		lcd_send_cmd(0x80 | 0x56);
+		lcd_send_string("End");
+	}
+	else if(isWifi == 1)
+	{
+		lcd_send_cmd(0x80 | 0x02);
+		lcd_send_string("Go to the link:");
+		lcd_send_cmd(0x80 | 0x42);
+		lcd_send_string("setupwifi.com.vn");
+		lcd_send_cmd(0x80 | 0x16);
+		lcd_send_string("Config_wifi ...");
+	}
+
 }
 void LCD_Menu_1()
 {
@@ -444,6 +459,15 @@ void LCD_Display()
 				}
 
 			}
+			else if(option_page_2 ==Page2_start)
+			{
+				button_flag = 1;
+				option_page_2 = Page2_Nothing;
+				Rpush_number = 2;
+				pointer_position = pointer_position + 1;
+				HAL_TIM_Base_Start_IT(&htim4);
+				lcd_clear();
+			}
 
 		}
 	}
@@ -618,9 +642,20 @@ void LCD_Display()
 /*case 2 WIFI_CONFIG:*/
 			else if(option_page_1 == Page1_WifiConfig)
 			{
-				LCD_Menu_2_4();
+				LCD_Menu_2_4_(0);
 				if(option_page_2 == Page2_start)
 				{
+
+					HAL_TIM_Base_Stop_IT(&htim4);
+					while(Rpush_number == 3)
+					{
+											LCD_Menu_2_4_(1);
+											Push_Slect();
+											HAL_Delay(1000);
+											lcd_clear();
+											HAL_IWDG_Refresh(&hiwdg);
+											Wifi_Config();
+						}
 
 				}
 				else if(option_page_2 == Page2_end)

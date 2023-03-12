@@ -4,10 +4,13 @@
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
 
-extern String kaka;
 
-const char* ssid = "Xuan Truong";
-const char* password = "3conchimnon";
+
+// char ssid[100] = "XuanTruong's phone";
+// char password[100] = "88888888";
+char ssid[100] = "Xuan Truong";
+char password[100] = "3conchimnon";
+
 void setup_wifi() {
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -56,18 +59,18 @@ void callback(char* topic, byte *payload, unsigned int length) {
 }
 void MQTT_Init()
 {
-  setup_wifi();
+  // setup_wifi();
   client.setServer(MQTT_SERVER, MQTT_PORT );
   client.setCallback(callback);
   connect_to_broker(); 
   Serial.println("Start transfer");
 }
 
-void publish_data()
+void publish_data(String my_string)
 {
   char temp_string[100];
-  kaka.toCharArray(temp_string,kaka.length()+1);
-  client.publish(Topic_1,temp_string,kaka.length()+1);
+  my_string.toCharArray(temp_string,my_string.length()+1);
+  client.publish(Topic_1,temp_string,my_string.length()+1);
 }
 void MQTT_loop()
 {
