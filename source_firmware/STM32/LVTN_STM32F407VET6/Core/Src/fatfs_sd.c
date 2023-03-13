@@ -15,15 +15,15 @@
 #include "diskio.h"
 #include "fatfs_sd.h"
 
-extern SPI_HandleTypeDef hspi1;
+extern SPI_HandleTypeDef hspi2;
 extern volatile uint8_t Timer1, Timer2;                    /* 10ms 마다 감소하는 타이머 */
 
 static volatile DSTATUS Stat = STA_NOINIT;              /* 디스크 상태 Flag*/
 static uint8_t CardType;                                /* SD 타입 0:MMC, 1:SDC, 2:Block addressing */
 static uint8_t PowerFlag = 0;                           /* Power 상태 Flag */
 
-#define SD_CS_GPIO_Port GPIOA
-#define SD_CS_Pin GPIO_PIN_4
+#define SD_CS_GPIO_Port GPIOC
+#define SD_CS_Pin GPIO_PIN_1
 
 /* SPI Chip Select */
 static void SELECT(void)
@@ -40,8 +40,8 @@ static void DESELECT(void)
 /* SPI 데이터 전송 */
 static void SPI_TxByte(BYTE data)
 {
-  while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY);
-  HAL_SPI_Transmit(&hspi1, &data, 1, SPI_TIMEOUT);
+  while (HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY);
+  HAL_SPI_Transmit(&hspi2, &data, 1, SPI_TIMEOUT);
 }
 
 /* SPI 데이터 송수신 리턴형 함수 */
@@ -51,8 +51,8 @@ static uint8_t SPI_RxByte(void)
   dummy = 0xFF;
   data = 0;
 
-  while ((HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY));
-  HAL_SPI_TransmitReceive(&hspi1, &dummy, &data, 1, SPI_TIMEOUT);
+  while ((HAL_SPI_GetState(&hspi2) != HAL_SPI_STATE_READY));
+  HAL_SPI_TransmitReceive(&hspi2, &dummy, &data, 1, SPI_TIMEOUT);
 
   return data;
 }

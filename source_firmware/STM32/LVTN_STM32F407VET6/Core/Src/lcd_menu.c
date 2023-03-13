@@ -14,6 +14,7 @@ uint32_t lcd_pointer_1 = 0;
 uint8_t count = 0;
 uint8_t isPress = 0;
 uint32_t rotary_first_value = 0, rotary_curent_value = 0;
+extern uint8_t config_wifi_flag;
 
 extern float TDS,TDS_THR,PH,PH_THR,Temperature;
 extern float TDS_SetPoint,TDS_THR_SetPoint,PH_THR_SetPoint,PH_SetPoint,ph_a_value,ph_b_value,tds_k_value;
@@ -238,9 +239,9 @@ void LCD_Menu_2_4_(uint8_t isWifi)
 	if(isWifi == 0)
 	{
 		lcd_send_cmd(0x80 | 0x02);
-		lcd_send_string("Go to the link:");
+		lcd_send_string("login MyHydroponic");
 		lcd_send_cmd(0x80 | 0x42);
-		lcd_send_string("setupwifi.com.vn");
+		lcd_send_string("goto 192.168.4.1");
 		lcd_send_cmd(0x80 | 0x16);
 		lcd_send_string("Start");
 		lcd_send_cmd(0x80 | 0x56);
@@ -249,9 +250,9 @@ void LCD_Menu_2_4_(uint8_t isWifi)
 	else if(isWifi == 1)
 	{
 		lcd_send_cmd(0x80 | 0x02);
-		lcd_send_string("Go to the link:");
+		lcd_send_string("login MyHydroponic");
 		lcd_send_cmd(0x80 | 0x42);
-		lcd_send_string("setupwifi.com.vn");
+		lcd_send_string("goto 192.168.4.1");
 		lcd_send_cmd(0x80 | 0x16);
 		lcd_send_string("Config_wifi ...");
 	}
@@ -410,10 +411,6 @@ void LCD_Display()
 				if(pointer_position == 4)
 				{
 					option_page_2 = Page2_start;
-				}
-				else if(pointer_position == 6)
-				{
-					option_page_2 = Page2_end;
 				}
 				else
 				{
@@ -645,17 +642,19 @@ void LCD_Display()
 				LCD_Menu_2_4_(0);
 				if(option_page_2 == Page2_start)
 				{
-
 					HAL_TIM_Base_Stop_IT(&htim4);
-					while(Rpush_number == 3)
+					while(Rpush_number == 3 && config_wifi_flag == 0)
 					{
-											LCD_Menu_2_4_(1);
 											Push_Slect();
-											HAL_Delay(1000);
 											lcd_clear();
 											HAL_IWDG_Refresh(&hiwdg);
+											LCD_Menu_2_4_(1);
 											Wifi_Config();
+											HAL_Delay(1000);
+
 						}
+					config_wifi_flag = 0;
+					Rpush_number = 4;
 
 				}
 				else if(option_page_2 == Page2_end)

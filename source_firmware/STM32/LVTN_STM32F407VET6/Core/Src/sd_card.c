@@ -36,24 +36,24 @@ void SD_Handling(uint8_t *SD_ReadBufferData)
 	}
 }
 
-void SD_Write(char *NameOfFile,  char *Data)
+void SD_Card_Write(char *NameOfFile,  char *Data)
 {
-
 		fresult = f_open(&file, NameOfFile, FA_OPEN_ALWAYS | FA_READ | FA_WRITE);
 		f_lseek(&file, f_size(&file));
 		  if (fresult == FR_OK)
 			  {
 			  	  SEND_UART1 ("file is created\n");
+			  	  f_puts(Data, &file);
+			  	  fresult = f_close(&file);
 			  	 }
 		  else
 		  {
 			  SEND_UART1 ("Create file is fail\n");
 		  }
-		f_puts(Data, &file);
-	  	fresult = f_close(&file);
+
 }
 
-void SD_Read(char* NameOfFile, uint8_t *buffer)
+void SD_Card_Read(char* NameOfFile, uint8_t *buffer)
 {
 	fresult = f_open(&file, NameOfFile,FA_READ);
 	f_read(&file, buffer, f_size(&file), &br);

@@ -15,6 +15,6 @@
 
 
 void SD_Handling(uint8_t *SD_ReadBufferData);
-void SD_Write(char *NameOfFile,  char *Data);
-void SD_Read(char* NameOfFile, uint8_t *buffer);
+void SD_Card_Write(char *NameOfFile,  char *Data);
+void SD_Card_Read(char* NameOfFile, uint8_t *buffer);
 #endif /* INC_SD_CARD_H_ */

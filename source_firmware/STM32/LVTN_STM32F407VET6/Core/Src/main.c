@@ -53,6 +53,7 @@ I2C_HandleTypeDef hi2c1;
 IWDG_HandleTypeDef hiwdg;
 
 SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim6;
@@ -69,12 +70,13 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_USART1_UART_Init(void);
-static void MX_SPI1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_IWDG_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_SPI2_Init(void);
+static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -94,13 +96,13 @@ float TDS_SetPoint = 0,TDS_THR_SetPoint = 0,PH_THR_SetPoint = 0,PH_SetPoint = 0;
 
 uint8_t day = 0, month = 0, hour= 0, minute = 0, second = 0;
 uint16_t year = 0;
-
+uint8_t config_wifi_flag = 0;
 
 float   esp32_stm32_SetPoint[] = {0};
 int     esp32_stm32_History[] = {0};
 
-uint8_t SPI1_SD_WriteBufferData[] = "";			//Store SD data when Write to SD
-uint8_t SPI1_SD_ReadBufferData[1024];			//Store SD data Read from SD
+//uint8_t SD_Write[] = "";			//Store SD data when Write to SD
+uint8_t SD_Read[1024];							//Store SD data Read from SD
 uint8_t FileName[20];							//Name of File namme
 uint8_t UART1_TEMPBUFFER[SIZEOF_COMMAND];		//Temp buffer when receive data UART1
 uint8_t UART1_MAINBUFFER[UART1_BUFFER_SIZE];	//MAIN buffer store data UART1
@@ -133,7 +135,12 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart1,UART1_TEMPBUFFER,SIZEOF_COMMAND);
 		__HAL_DMA_DISABLE_IT(&hdma_usart1_rx,DMA_IT_HT);
 	}
-	HAL_UART_Transmit(&huart1, UART1_MAINBUFFER,strlen((char*)UART1_MAINBUFFER), 500);
+
+	if(!strcmp(UART1_MAINBUFFER,"Config_Wifi_done"))
+	{
+		HAL_UART_Transmit(&huart1, UART1_MAINBUFFER,strlen((char*)UART1_MAINBUFFER), 1000);
+		config_wifi_flag = 1;
+	}
 }
 
 void SEND_UART1(char *String)
@@ -143,10 +150,13 @@ void SEND_UART1(char *String)
 void Handle_value_send(Message_type tp)
 {
 	char msg_send[100];
+	char msg_save[100];
 	if(tp == Value)
 	{
 		memset(msg_send,0,strlen(msg_send));
 		sprintf(msg_send,"{\"ID\":\"123456789\",\"PH\":\"%.2f\",\"TDS\":\"%.0f\",\"Temp\":\"%.2f\"}",PH,TDS,Temperature);
+		sprintf(msg_save,"23:16:22 {\"ID\":\"123456789\",\"PH\":\"%.2f\",\"TDS\":\"%.0f\",\"Temp\":\"%.2f\"}\n",PH,TDS,Temperature);
+		SD_Card_Write("today.txt", msg_save);
 		SEND_UART1(msg_send);
 	}
 	else if(tp == WifiConfig)
@@ -201,7 +211,6 @@ float TDS_Calculator(float k, uint16_t adc)
 
 
 /*=====================================Flash_Start=================================*/
-float *save_data_flash_ptr = NULL;
 
 void Save_SetPoint(Save_Flash_Type tp)
 {
@@ -418,45 +427,51 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART1_UART_Init();
-  MX_SPI1_Init();
   MX_FATFS_Init();
   MX_ADC1_Init();
   MX_I2C1_Init();
   MX_TIM4_Init();
-//  MX_IWDG_Init();
+  MX_IWDG_Init();
   MX_TIM6_Init();
+  MX_SPI2_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+ //=========================================================================  TESTING
+
+
+ //=========================================================================  CONFIG_MAIN
   HAL_TIM_Base_Start_IT(&htim4);
   HAL_TIM_Base_Start(&htim6);
-//  HAL_UARTEx_ReceiveToIdle_DMA(&huart1,UART1_TEMPBUFFER,SIZEOF_COMMAND);
-//  __HAL_DMA_DISABLE_IT(&hdma_usart1_rx,DMA_IT_HT);
-
-
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart1,UART1_TEMPBUFFER,SIZEOF_COMMAND);
+  __HAL_DMA_DISABLE_IT(&hdma_usart1_rx,DMA_IT_HT);
 
   for(int i =0;i<5;i++)
   {
 	  HAL_GPIO_TogglePin(test_pin_GPIO_Port,test_pin_Pin);
 	  HAL_Delay(200);
   }
-
   //HAL_Delay(50);
   lcd_init();
   Rotary_init();
   lcd_clear();
-
   W25qxx_Init();
   HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
   Read_SetPoint(flash_calibration_tds);
   Read_SetPoint(flash_calibration_ph);
-
+  SD_Handling(SD_Read);
+  f_unlink("today.txt");
   uint32_t time_read = 0;
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  //=========================================================================  TESTING
 
+	  //=========================================================================  CONFIG_MAIN
 	  LCD_Display();
 	  if(time_read == 100)
 	  {
@@ -691,6 +706,44 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
   * @brief TIM4 Initialization Function
   * @param None
   * @retval None
@@ -836,18 +889,29 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, Temperature_Pin_Pin|SPI1_CS_Pin|test_pin_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SD_CS_SPI2_GPIO_Port, SD_CS_SPI2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, Temperature_Pin_Pin|test_pin_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(FLASH_CS_GPIO_Port, FLASH_CS_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : Temperature_Pin_Pin SPI1_CS_Pin test_pin_Pin */
-  GPIO_InitStruct.Pin = Temperature_Pin_Pin|SPI1_CS_Pin|test_pin_Pin;
+  /*Configure GPIO pin : SD_CS_SPI2_Pin */
+  GPIO_InitStruct.Pin = SD_CS_SPI2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(SD_CS_SPI2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Temperature_Pin_Pin test_pin_Pin */
+  GPIO_InitStruct.Pin = Temperature_Pin_Pin|test_pin_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

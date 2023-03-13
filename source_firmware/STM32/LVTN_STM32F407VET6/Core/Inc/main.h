@@ -63,14 +63,18 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define SD_CS_SPI2_Pin GPIO_PIN_1
+#define SD_CS_SPI2_GPIO_Port GPIOC
+#define SD_MISO_SPI2_Pin GPIO_PIN_2
+#define SD_MISO_SPI2_GPIO_Port GPIOC
+#define SD_MOSI_SPI2_Pin GPIO_PIN_3
+#define SD_MOSI_SPI2_GPIO_Port GPIOC
 #define ADC1_PH_Sensor_Pin GPIO_PIN_0
 #define ADC1_PH_Sensor_GPIO_Port GPIOA
 #define ADC1_TDS_Sensor_Pin GPIO_PIN_1
 #define ADC1_TDS_Sensor_GPIO_Port GPIOA
 #define Temperature_Pin_Pin GPIO_PIN_2
 #define Temperature_Pin_GPIO_Port GPIOA
-#define SPI1_CS_Pin GPIO_PIN_4
-#define SPI1_CS_GPIO_Port GPIOA
 #define test_pin_Pin GPIO_PIN_6
 #define test_pin_GPIO_Port GPIOA
 #define FLASH_CS_Pin GPIO_PIN_0
@@ -81,6 +85,8 @@ void Error_Handler(void);
 #define Rotary_DT_GPIO_Port GPIOE
 #define Rotary_SW_Pin GPIO_PIN_9
 #define Rotary_SW_GPIO_Port GPIOE
+#define SD_SCK_SPI2_Pin GPIO_PIN_10
+#define SD_SCK_SPI2_GPIO_Port GPIOB
 #define LCD_I2C1_SCL_Pin GPIO_PIN_6
 #define LCD_I2C1_SCL_GPIO_Port GPIOB
 #define LCD_I2C1_SDA_Pin GPIO_PIN_7
