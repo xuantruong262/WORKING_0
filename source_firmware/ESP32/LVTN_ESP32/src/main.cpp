@@ -55,6 +55,7 @@ void Config_Wifi()
   else {
         //if you get here you have connected to the WiFi    
         Serial.println("connected...yeey :)");
+        Serial2.write("Config_Wifi_done");
         username = cWifi.getWiFiSSID();
         pass = cWifi.getWiFiPass();
         Write_to_EPP(username,pass);
@@ -100,7 +101,7 @@ void loop() {
   {
     data_receive =  Serial2.readString();
     publish_data(data_receive);
-    if(data_receive == "Wifi")
+    if(data_receive == "wificonfigmode")
     {
        Serial.println(Serial2.readString());
        Config_Wifi();
