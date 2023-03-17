@@ -4,7 +4,7 @@ MQTT_SERVER = 'ngoinhaiot.com'
 MQTT_PORT = 2222
 MQTT_KEEPALIVE = 60
 MQTT_USER = 'XuanTruong'
-MQTT_PASSWORD = '759E283B03B34284'
+MQTT_PASSWORD = '8FEB9F35E8D44666'
 
 MQTT_CONFIG = {
     'server': MQTT_SERVER,
@@ -17,9 +17,12 @@ MQTT_CONFIG = {
 MQTT_TOPICS = {
     'ph': MQTT_USER + '/PH_value',
     'tds': MQTT_USER + '/TDS_value',
-    'temp': MQTT_USER + '/Temprature_value'
+    'temp': MQTT_USER + '/Temprature_value',
+    'device': MQTT_USER + '/123456789'
 }
 
-MONGO_CLIENT = MongoClient()
+HOST = 'mongodb+srv://phuoc:0909605306@mqtt.tofdq9n.mongodb.net/test'
+
+MONGO_CLIENT = MongoClient(HOST)
 DB = MONGO_CLIENT['mqtt']
 MQTT_COLLECTION = DB['mqtt']

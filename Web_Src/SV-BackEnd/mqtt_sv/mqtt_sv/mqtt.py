@@ -14,7 +14,7 @@ receive_time = 1
 def on_connect(mqtt_client, userdata, flags, rc):
     if rc == 0:
         print('[' + datetime.datetime.now().strftime('%c') + '] ' + 'Connected with broker successfully')
-        mqtt_client.subscribe([(topics['ph'], 0), (topics['tds'], 0), (topics['temp'], 0)])
+        mqtt_client.subscribe(topics['device'])
     else:
         print('Bad connection. Code:', rc)
 
@@ -23,15 +23,15 @@ def on_message(mqtt_client, userdata, msg):
     print(f'Received message on topic: {msg.topic} with payload: {msg.payload}')
     global receive_time
     try:
-        if receive_time == 1:
+        if receive_time == 180:
             device = json.loads(msg.payload.decode("utf-8"))
             res = {
-                "timestamp": datetime.datetime.now(),
+                "saved_time": toDateTimeObj(datetime.datetime.today()),
                 "topic": msg.topic,
-                "device_id": device['id'],
-                "ph": device['ph'],
-                "tds": device['tds'],
-                "temperature": device['temp']
+                "device_id": int(device['ID']),
+                "ph": float(device['PH']),
+                "tds": int(device['TDS']),
+                "temperature": float(device['Temp'])
             }
             mqtt_collection.insert_one(res)
             print('Inserted successfully', res)
@@ -39,7 +39,14 @@ def on_message(mqtt_client, userdata, msg):
         receive_time += 1
     except Exception as e:
         print('Error: Exception with:', e)
+        receive_time = 0
 
+def toDateTimeObj(date):
+    return {
+        'day': date.day,
+        'month': date.month,
+        'year': date.year
+    }
 
 client = mqtt.Client("phuoc", transport='websockets')
 client.on_connect = on_connect
