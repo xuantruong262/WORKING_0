@@ -5,9 +5,12 @@
  *      Author: Xuan Truong
  */
 #include<lcd_menu.h>
+#include "ds1307.h"
 
 extern TIM_HandleTypeDef htim4;
 extern IWDG_HandleTypeDef hiwdg;
+extern DS1307_STRUCT ds1307;
+
 
 uint32_t last = 0, pointer_position = 0,Rpush_number = 0,button_flag = 0,Page = 0;
 uint32_t lcd_pointer_1 = 0;
@@ -286,8 +289,9 @@ void LCD_Normal_Mode()
 	lcd_send_cmd(0x80 | 0x17); //PH
 	lcd_send_string(String);
 	memset(String,0,strlen(String));
+	sprintf(String,"%d/%d/%d- %d:%d ",ds1307.date,ds1307.month,ds1307.year,ds1307.hour,ds1307.min);
 	lcd_send_cmd(0x80 | 0x54); //PH
-	lcd_send_string("PRESS TO CONFIG MODE");
+	lcd_send_string(String);
 }
 void LCD_Display()
 {

@@ -7,6 +7,9 @@
 
 
 #include"sd_card.h"
+#include "ds1307.h"
+extern DS1307_STRUCT ds1307;
+extern uint8_t save_sd_flag;
 
 
 FATFS fs;  								//File system
@@ -59,5 +62,30 @@ void SD_Card_Read(char* NameOfFile, uint8_t *buffer)
 	f_read(&file, buffer, f_size(&file), &br);
 	//f_gets(buffer, file.fsize, &file);
 	fresult = f_close(&file);
+
+}
+
+void SD_save(char *my_data)
+{
+
+	if(((ds1307.min)%15) == 0)
+	{
+		if(save_sd_flag == 0)
+		{
+			char name[100];
+			char data[100];
+			sprintf(name,"%d_%d_%d.txt",ds1307.date,ds1307.month,ds1307.year);
+			sprintf(data,"%d:%d ==>>",ds1307.hour,ds1307.min);
+			strcat(data,my_data);
+			strcat(data,"\n");
+			SD_Card_Write(name,data);
+			save_sd_flag++;
+		}
+
+	}
+	else
+	{
+		save_sd_flag = 0;
+	}
 
 }

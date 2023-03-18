@@ -39,7 +39,8 @@ Core/Src/sd_card.o: ../Core/Src/sd_card.c ../Core/Inc/sd_card.h \
  ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h \
  ../Middlewares/Third_Party/FatFs/src/diskio.h \
  ../Middlewares/Third_Party/FatFs/src/ff.h ../FATFS/Target/user_diskio.h \
- ../Core/Inc/fatfs_sd.h ../Core/Inc/common.h ../Core/Inc/main.h
+ ../Core/Inc/fatfs_sd.h ../Core/Inc/common.h ../Core/Inc/main.h \
+ ../Core/Inc/ds1307.h
 ../Core/Inc/sd_card.h:
 ../FATFS/App/fatfs.h:
 ../Middlewares/Third_Party/FatFs/src/ff.h:
@@ -88,3 +89,4 @@ Core/Src/sd_card.o: ../Core/Src/sd_card.c ../Core/Inc/sd_card.h \
 ../Core/Inc/fatfs_sd.h:
 ../Core/Inc/common.h:
 ../Core/Inc/main.h:
+../Core/Inc/ds1307.h:

@@ -87,6 +87,14 @@ void Error_Handler(void);
 #define Rotary_SW_GPIO_Port GPIOE
 #define SD_SCK_SPI2_Pin GPIO_PIN_10
 #define SD_SCK_SPI2_GPIO_Port GPIOB
+#define ACID_Pin GPIO_PIN_12
+#define ACID_GPIO_Port GPIOD
+#define BASE_Pin GPIO_PIN_13
+#define BASE_GPIO_Port GPIOD
+#define NutriA_Pin GPIO_PIN_14
+#define NutriA_GPIO_Port GPIOD
+#define NutriB_Pin GPIO_PIN_15
+#define NutriB_GPIO_Port GPIOD
 #define LCD_I2C1_SCL_Pin GPIO_PIN_6
 #define LCD_I2C1_SCL_GPIO_Port GPIOB
 #define LCD_I2C1_SDA_Pin GPIO_PIN_7

@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include "w25qxx.h"
 #include "lcd_menu.h"
+#include "ds1307.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +50,7 @@ ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
 I2C_HandleTypeDef hi2c1;
+I2C_HandleTypeDef hi2c3;
 
 IWDG_HandleTypeDef hiwdg;
 
@@ -77,6 +79,7 @@ static void MX_IWDG_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_I2C3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -87,16 +90,16 @@ static void MX_SPI1_Init(void);
 #define SIZEOF_COMMAND 60
 #define UART1_BUFFER_SIZE 1024
 
+uint16_t time_tds = 0;
+uint16_t time_ph = 0;
 
 float TDS = 0,TDS_THR= 0,PH = 0,PH_THR = 0,Temperature = 0;
 
 
 float TDS_SetPoint = 0,TDS_THR_SetPoint = 0,PH_THR_SetPoint = 0,PH_SetPoint = 0;
 
-
-uint8_t day = 0, month = 0, hour= 0, minute = 0, second = 0;
-uint16_t year = 0;
 uint8_t config_wifi_flag = 0;
+uint8_t save_sd_flag = 0;
 
 float   esp32_stm32_SetPoint[] = {0};
 int     esp32_stm32_History[] = {0};
@@ -150,13 +153,12 @@ void SEND_UART1(char *String)
 void Handle_value_send(Message_type tp)
 {
 	char msg_send[100];
-	char msg_save[100];
+
 	if(tp == Value)
 	{
 		memset(msg_send,0,strlen(msg_send));
 		sprintf(msg_send,"{\"ID\":\"123456789\",\"PH\":\"%.2f\",\"TDS\":\"%.0f\",\"Temp\":\"%.2f\"}",PH,TDS,Temperature);
-		sprintf(msg_save,"23:16:22 {\"ID\":\"123456789\",\"PH\":\"%.2f\",\"TDS\":\"%.0f\",\"Temp\":\"%.2f\"}\n",PH,TDS,Temperature);
-		SD_Card_Write("today.txt", msg_save);
+		SD_save(msg_send);
 		SEND_UART1(msg_send);
 	}
 	else if(tp == WifiConfig)
@@ -377,12 +379,69 @@ float Get_Temperature_DS18B20()
 /*=====================================DS18B20_End=================================*/
 
 /*=====================================Interrupt_Start=========================*/
+
+void TDS_Control()
+{
+	   uint32_t i = 0;
+	   if((time_tds%6) == 0)
+	   {
+		   if(TDS < (TDS_SetPoint-TDS_THR_SetPoint))
+		   {
+			   HAL_GPIO_WritePin(NutriA_GPIO_Port,NutriA_Pin, GPIO_PIN_RESET);
+			   HAL_GPIO_WritePin(NutriB_GPIO_Port,NutriB_Pin, GPIO_PIN_RESET);
+			   while(i<14000000)
+			   {
+				   i++;
+			   }
+
+			   HAL_GPIO_WritePin(NutriA_GPIO_Port,NutriA_Pin, GPIO_PIN_SET);
+			   HAL_GPIO_WritePin(NutriB_GPIO_Port,NutriB_Pin, GPIO_PIN_SET);
+		   }
+
+		   time_tds = 1;
+	   }
+	   time_tds++;
+}
+
+void PH_Control()
+{
+	   uint32_t i = 0;
+	   if((time_ph%6) == 0)
+	   {
+		   if(PH < (PH_SetPoint-PH_THR_SetPoint))
+		   {
+			   HAL_GPIO_WritePin(BASE_GPIO_Port,BASE_Pin, GPIO_PIN_RESET);
+			   while(i<14000000)
+			   {
+				   i++;
+			   }
+			   HAL_GPIO_WritePin(BASE_GPIO_Port,BASE_Pin, GPIO_PIN_SET);
+		   }
+		   else if(PH > (PH_SetPoint + PH_THR_SetPoint))
+		   {
+			   HAL_GPIO_WritePin(ACID_GPIO_Port,ACID_Pin, GPIO_PIN_RESET);
+			   while(i<14000000)
+			   {
+				   i++;
+			   }
+			   HAL_GPIO_WritePin(ACID_GPIO_Port,ACID_Pin, GPIO_PIN_SET);
+		   }
+		   time_ph = 1;
+	   }
+	   time_ph++;
+}
+
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+
 	 if(htim->Instance == htim4.Instance)
 	 {
 	   HAL_GPIO_TogglePin(test_pin_GPIO_Port,test_pin_Pin);
 	   Handle_value_send(Value);
+	   TDS_Control();
+	   PH_Control();
+
 	 }
 }
 /*=====================================Interrupt_End=========================*/
@@ -435,6 +494,7 @@ int main(void)
   MX_TIM6_Init();
   MX_SPI2_Init();
   MX_SPI1_Init();
+  MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
  //=========================================================================  TESTING
 
@@ -456,10 +516,13 @@ int main(void)
   lcd_clear();
   W25qxx_Init();
   HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
+  Read_SetPoint(flash_setpoint);
   Read_SetPoint(flash_calibration_tds);
   Read_SetPoint(flash_calibration_ph);
   SD_Handling(SD_Read);
-  f_unlink("today.txt");
+//  DS1307_config();
+//  DS1307_settime(0, 18, 12, 7, 18, 3, 2023);
+
   uint32_t time_read = 0;
 
 
@@ -481,6 +544,7 @@ int main(void)
 		  Temperature = Get_Temperature_DS18B20();
 		  time_read = 0;
 	  }
+	  DS1307_gettime();
 	  time_read++;
 	  HAL_IWDG_Refresh(&hiwdg);
 
@@ -636,6 +700,40 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
+  * @brief I2C3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C3_Init(void)
+{
+
+  /* USER CODE BEGIN I2C3_Init 0 */
+
+  /* USER CODE END I2C3_Init 0 */
+
+  /* USER CODE BEGIN I2C3_Init 1 */
+
+  /* USER CODE END I2C3_Init 1 */
+  hi2c3.Instance = I2C3;
+  hi2c3.Init.ClockSpeed = 100000;
+  hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c3.Init.OwnAddress1 = 0;
+  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c3.Init.OwnAddress2 = 0;
+  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C3_Init 2 */
+
+  /* USER CODE END I2C3_Init 2 */
 
 }
 
@@ -893,6 +991,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(SD_CS_SPI2_GPIO_Port, SD_CS_SPI2_Pin, GPIO_PIN_RESET);
@@ -902,6 +1001,9 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(FLASH_CS_GPIO_Port, FLASH_CS_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, ACID_Pin|BASE_Pin|NutriA_Pin|NutriB_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : SD_CS_SPI2_Pin */
   GPIO_InitStruct.Pin = SD_CS_SPI2_Pin;
@@ -929,6 +1031,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : ACID_Pin BASE_Pin NutriA_Pin NutriB_Pin */
+  GPIO_InitStruct.Pin = ACID_Pin|BASE_Pin|NutriA_Pin|NutriB_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 }
 
