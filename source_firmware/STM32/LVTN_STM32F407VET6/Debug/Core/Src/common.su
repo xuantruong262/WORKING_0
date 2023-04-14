@@ -1,3 +1,2 @@
-../Core/Src/common.c:12:6:BUFFER_CLEAR	24	static
-../Core/Src/common.c:20:14:BUFF_SIZE	24	static
-../Core/Src/common.c:28:6:GET_VALUE_FROM_ESP32	32	static
+../Core/Src/common.c:15:6:BUFFER_CLEAR	24	static
+../Core/Src/common.c:23:14:BUFF_SIZE	24	static

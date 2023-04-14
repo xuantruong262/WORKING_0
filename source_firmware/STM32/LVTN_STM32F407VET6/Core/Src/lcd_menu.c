@@ -10,7 +10,9 @@
 extern TIM_HandleTypeDef htim4;
 extern IWDG_HandleTypeDef hiwdg;
 extern DS1307_STRUCT ds1307;
-
+extern RTC_HandleTypeDef hrtc;
+extern RTC_DateTypeDef sDate;
+extern RTC_TimeTypeDef sTime;
 
 uint32_t last = 0, pointer_position = 0,Rpush_number = 0,button_flag = 0,Page = 0;
 uint32_t lcd_pointer_1 = 0;
@@ -18,6 +20,7 @@ uint8_t count = 0;
 uint8_t isPress = 0;
 uint32_t rotary_first_value = 0, rotary_curent_value = 0;
 extern uint8_t config_wifi_flag;
+extern uint8_t from_web_flag;
 
 extern float TDS,TDS_THR,PH,PH_THR,Temperature;
 extern float TDS_SetPoint,TDS_THR_SetPoint,PH_THR_SetPoint,PH_SetPoint,ph_a_value,ph_b_value,tds_k_value;
@@ -32,6 +35,60 @@ extern void  PH_Calibration();
 extern void TDS_Calibration();
 extern void Wifi_Config();
 extern float TDS_Calculator(float k , uint16_t adc);
+
+char *filt_string(char *str)
+{
+    char *first;
+    char *token;
+    first = strstr(str,":");
+    token = strtok((char*)first+2,"\"");
+
+    return token;
+}
+void GET_VALUE_FROM_ESP32(char *string)
+{
+    char *first;
+    char *token;
+    char *ph_string;
+    char *ph_thr_string;
+    char *tds_string;
+    char *tds_thr_string;
+    int i = 0;
+
+    first = strstr(string,"{");
+    token = strtok((char*)first,",");
+    ph_string = token;
+
+         while( token != NULL )
+          {
+        	 token = strtok(NULL,",");
+        	 if(i == 0)
+        	 {
+        		 ph_thr_string = token;
+
+        	 }
+        	 else if(i == 1)
+        	 {
+        		 tds_string =token;
+
+        	 }
+        	 else if(i == 2)
+        	 {
+        		 tds_thr_string = token;
+
+        	 }
+             i++;
+          }
+         PH_SetPoint = (float)atof(filt_string(ph_string));
+         PH_THR_SetPoint =  (float)(atof(filt_string(ph_thr_string)));
+         TDS_SetPoint =  (float)atof(filt_string(tds_string));
+         TDS_THR_SetPoint = (float)atof(filt_string(tds_thr_string));
+         from_web_flag = 1;
+//         Read_SetPoint(flash_setpoint);
+
+
+}
+
 void Rotary_init()
 {
 	rotary_first_value = HAL_GPIO_ReadPin(GPIOE, Rotary_CLK_Pin);
@@ -178,16 +235,25 @@ void LCD_Menu_2_1()
 	lcd_send_string(buffer_string);
 	memset(buffer_string,0,strlen(buffer_string));
 }
-void LCD_Menu_2_2()
+void LCD_Menu_2_2(uint8_t isTesting)
 {
-	lcd_send_cmd(0x80 | 0x02); //PH
-	lcd_send_string("Pump 1:");
-	lcd_send_cmd(0x80 | 0x42); //PH
-	lcd_send_string("Pump 2:");
-	lcd_send_cmd(0x80 | 0x16); //PH
-	lcd_send_string("Pump 3:");
-	lcd_send_cmd(0x80 | 0x56); //PH
-	lcd_send_string("Pump 4:");
+	if(isTesting == 0)
+	{
+		lcd_send_cmd(0x80 | 0x02); //PH
+		lcd_send_string("Pump 1:");
+		lcd_send_cmd(0x80 | 0x42); //PH
+		lcd_send_string("Pump 2:");
+		lcd_send_cmd(0x80 | 0x16); //PH
+		lcd_send_string("Pump 3:");
+		lcd_send_cmd(0x80 | 0x56); //PH
+		lcd_send_string("Pump 4:");
+	}
+	else if(isTesting == 1)
+	{
+		lcd_send_cmd(0x80 | 0x42); //PH
+		lcd_send_string("Testing pump...");
+		lcd_clear();
+	}
 }
 void LCD_Menu_2_3(uint8_t isCalib)
 {
@@ -275,26 +341,32 @@ void LCD_Menu_1()
 void LCD_Normal_Mode()
 {
 	char String[100];
-	sprintf(String,"PH  :%.2f   ",PH);
-	lcd_send_cmd(0x80 | 0x03); //PH
+	sprintf(String,"PH  :%.2f / %.2f",PH,PH_SetPoint);
+	lcd_send_cmd(0x80 | 0x01); //PH
 	lcd_send_string(String) ;
 	memset(String,0,strlen(String));
 
-	sprintf(String,"TDS :%.0f   ",TDS);
-	lcd_send_cmd(0x80 | 0x43); //PH
+	sprintf(String,"TDS :%.0f / %.0fppm",TDS,TDS_SetPoint);
+	lcd_send_cmd(0x80 | 0x41); //PH
 	lcd_send_string(String);
 	memset(String,0,strlen(String));
 
-	sprintf(String,"TEMP:%.2f   ",Temperature);
-	lcd_send_cmd(0x80 | 0x17); //PH
+	sprintf(String,"TEMP:%.2f*C",Temperature);
+	lcd_send_cmd(0x80 | 0x15); //PH
 	lcd_send_string(String);
 	memset(String,0,strlen(String));
-	sprintf(String,"%d/%d/%d- %d:%d ",ds1307.date,ds1307.month,ds1307.year,ds1307.hour,ds1307.min);
-	lcd_send_cmd(0x80 | 0x54); //PH
+	sprintf(String,"%d/%d/%d- %d:%d ",sDate.Date,sDate.Month ,sDate.Year,sTime.Hours,sTime.Minutes);
+	lcd_send_cmd(0x80 | 0x56); //PH
 	lcd_send_string(String);
 }
 void LCD_Display()
 {
+	if(from_web_flag == 1)
+	{
+
+		Save_SetPoint(flash_setpoint);
+		from_web_flag = 0;
+	}
 	float tamp  = 0;
 	float tamp2 = 0;
 	{
@@ -469,6 +541,20 @@ void LCD_Display()
 				HAL_TIM_Base_Start_IT(&htim4);
 				lcd_clear();
 			}
+			else if(option_page_2 == Page2_pump_1 || Page2_pump_2 || Page2_pump_3 || Page2_pump_4)
+			{
+				HAL_GPIO_WritePin(ACID_GPIO_Port, ACID_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(BASE_GPIO_Port, BASE_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(NutriA_GPIO_Port, NutriA_Pin, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(NutriB_GPIO_Port, NutriB_Pin, GPIO_PIN_SET);
+				button_flag = 1;
+				option_page_2 = Page2_Nothing;
+				Rpush_number = 2;
+				pointer_position = pointer_position + 1;
+				HAL_TIM_Base_Start_IT(&htim4);
+				lcd_clear();
+			}
+
 
 		}
 	}
@@ -570,22 +656,52 @@ void LCD_Display()
 /*case 2 TESTING:*/
 			else if(option_page_1 == Page1_Testing) // Display with option testing
 			{
-				 LCD_Menu_2_2();
+				 LCD_Menu_2_2(0);
+
 				  if(option_page_2 == Page2_pump_1)
 				  {
+					  HAL_TIM_Base_Stop_IT(&htim4);
+					  while(Rpush_number == 3)
+					  {
+						  	  HAL_GPIO_WritePin(ACID_GPIO_Port, ACID_Pin, GPIO_PIN_RESET);
+						  	  LCD_Menu_2_2(1);
+						  	  Push_Slect();
+						  	  HAL_IWDG_Refresh(&hiwdg);
 
+					  }
 				  }
 				  else if(option_page_2== Page2_pump_2)
 				  {
-
+					  HAL_TIM_Base_Stop_IT(&htim4);
+					  while(Rpush_number == 3)
+					  {
+					  	  HAL_GPIO_WritePin(BASE_GPIO_Port, BASE_Pin, GPIO_PIN_RESET);
+					  	  LCD_Menu_2_2(1);
+					  	  Push_Slect();
+					  	  HAL_IWDG_Refresh(&hiwdg);
+					  }
 				  }
 				  else if(option_page_2==Page2_pump_3)
 				  {
-
+					  HAL_TIM_Base_Stop_IT(&htim4);
+					  while(Rpush_number == 3)
+					  {
+					  	  HAL_GPIO_WritePin(NutriA_GPIO_Port, NutriA_Pin, GPIO_PIN_RESET);
+					  	  LCD_Menu_2_2(1);
+					  	  Push_Slect();
+					  	  HAL_IWDG_Refresh(&hiwdg);
+					  }
 				  }
 				  else if(option_page_2==Page2_pump_4)
 				  {
-
+					  HAL_TIM_Base_Stop_IT(&htim4);
+					  while(Rpush_number == 3)
+					  {
+					  	  HAL_GPIO_WritePin(NutriB_GPIO_Port, NutriB_Pin, GPIO_PIN_RESET);
+					  	  LCD_Menu_2_2(1);
+					  	  Push_Slect();
+					  	  HAL_IWDG_Refresh(&hiwdg);
+					  }
 				  }
 				  else if(option_page_2 == Page2_Back)
 				  {

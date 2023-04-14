@@ -47,12 +47,13 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-DMA_HandleTypeDef hdma_adc1;
 
 I2C_HandleTypeDef hi2c1;
 I2C_HandleTypeDef hi2c3;
 
 IWDG_HandleTypeDef hiwdg;
+
+RTC_HandleTypeDef hrtc;
 
 SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi2;
@@ -80,6 +81,7 @@ static void MX_TIM6_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_I2C3_Init(void);
+static void MX_RTC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -87,7 +89,7 @@ static void MX_I2C3_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 /*=====================================COMMON=================================*/
-#define SIZEOF_COMMAND 60
+#define SIZEOF_COMMAND 1024
 #define UART1_BUFFER_SIZE 1024
 
 uint16_t time_tds = 0;
@@ -100,6 +102,7 @@ float TDS_SetPoint = 0,TDS_THR_SetPoint = 0,PH_THR_SetPoint = 0,PH_SetPoint = 0;
 
 uint8_t config_wifi_flag = 0;
 uint8_t save_sd_flag = 0;
+uint8_t from_web_flag = 0;
 
 float   esp32_stm32_SetPoint[] = {0};
 int     esp32_stm32_History[] = {0};
@@ -115,6 +118,9 @@ void delay_us(uint16_t time)
     __HAL_TIM_SET_COUNTER(&htim6,0);
     while ((__HAL_TIM_GET_COUNTER(&htim6))<time);
 }
+
+
+void Save_SetPoint(Save_Flash_Type tp);
 /*=====================================COMMON_END=================================*/
 //
 //
@@ -128,6 +134,12 @@ typedef enum
 	WifiConfig,
 }Message_type;
 char buffer_send[100];
+
+void SEND_UART1(char *String)
+{
+	HAL_UART_Transmit(&huart1,(uint8_t*)String,strlen(String), 1000);
+}
+
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
@@ -144,12 +156,19 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		HAL_UART_Transmit(&huart1, UART1_MAINBUFFER,strlen((char*)UART1_MAINBUFFER), 1000);
 		config_wifi_flag = 1;
 	}
+
+	if(UART1_MAINBUFFER[2] == 80)
+	{
+//		SEND_UART1(UART1_MAINBUFFER);
+
+		GET_VALUE_FROM_ESP32(UART1_MAINBUFFER);
+
+	}
+	memset(UART1_MAINBUFFER,0,Size);
+
 }
 
-void SEND_UART1(char *String)
-{
-	HAL_UART_Transmit(&huart1,(uint8_t*)String,strlen(String), 1000);
-}
+
 void Handle_value_send(Message_type tp)
 {
 	char msg_send[100];
@@ -170,11 +189,11 @@ void Handle_value_send(Message_type tp)
 uint16_t ADC_Value[2] = {0};
 int ADC_PH_4 = 0, ADC_PH_7 = 0;
 float 	ph_a_value = 0,ph_b_value = 0,tds_k_value = 0;
-
+void get_adc();
 void PH_Calibration()
 {
 		//Ax+B = y => ADC_PH_4 - ADC_PH_7 = 640
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_Value, 2);
+	get_adc();
 
 	  if(ADC_Value[0] > 1540 && ADC_Value[0] < 2180)
 	  {
@@ -198,7 +217,7 @@ float PH_Calculator(float A, float B, uint16_t adc)
 
 void TDS_Calibration()
 {
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_Value, 2);
+	get_adc();
 
 	tds_k_value = (1000/(float)ADC_Value[1]);
 }
@@ -216,8 +235,12 @@ float TDS_Calculator(float k, uint16_t adc)
 
 void Save_SetPoint(Save_Flash_Type tp)
 {
+
 	if(tp == flash_setpoint)
 	{
+		time_tds = 80;
+		time_ph = 80;
+		HAL_Delay(10);
 		W25qxx_EraseSector(1);
 		W25qxx_EraseSector(2);
 		W25qxx_EraseSector(3);
@@ -383,7 +406,7 @@ float Get_Temperature_DS18B20()
 void TDS_Control()
 {
 	   uint32_t i = 0;
-	   if((time_tds%6) == 0)
+	   if((time_tds%90) == 0)
 	   {
 		   if(TDS < (TDS_SetPoint-TDS_THR_SetPoint))
 		   {
@@ -406,7 +429,7 @@ void TDS_Control()
 void PH_Control()
 {
 	   uint32_t i = 0;
-	   if((time_ph%6) == 0)
+	   if((time_ph%90) == 0)
 	   {
 		   if(PH < (PH_SetPoint-PH_THR_SetPoint))
 		   {
@@ -452,6 +475,76 @@ void Wifi_Config()
 	Handle_value_send(WifiConfig);
 }
 
+RTC_TimeTypeDef sTime = {0};
+RTC_DateTypeDef sDate = {0};
+
+float Ring_Buffer_PH[10]  = {0};
+float Ring_Buffer_TDS[10] = {0};
+//
+void get_time(void)
+{
+	char tmp_string[100] = {0};
+	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+	sprintf(tmp_string,"%d/%d/%d- %d:%d:%d\n",sDate.Date,sDate.Month,sDate.Year,sTime.Hours,sTime.Minutes,sTime.Seconds);
+	memset(tmp_string,0,strlen(tmp_string));
+}
+void ADC_Select_CH0 (void)
+{
+	ADC_ChannelConfTypeDef sConfig = {0};
+	  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+	  */
+	  sConfig.Channel = ADC_CHANNEL_0;
+	  sConfig.Rank = 1;
+	  sConfig.SamplingTime = ADC_SAMPLETIME_144CYCLES;
+	  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
+}
+
+void ADC_Select_CH1 (void)
+{
+	ADC_ChannelConfTypeDef sConfig = {0};
+	  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+	  */
+	  sConfig.Channel = ADC_CHANNEL_1;
+	  sConfig.Rank = 1;
+	  sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
+	  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
+}
+void get_adc()
+{
+	ADC_Select_CH0();
+	  HAL_ADC_Start(&hadc1);
+	  HAL_ADC_PollForConversion(&hadc1, 10);
+	  ADC_Value[0] = HAL_ADC_GetValue(&hadc1);
+	  HAL_ADC_Stop(&hadc1);
+	ADC_Select_CH1();
+	  ADC_Select_CH1();
+	  HAL_ADC_Start(&hadc1);
+	  HAL_ADC_PollForConversion(&hadc1, 10);
+	  ADC_Value[1] = HAL_ADC_GetValue(&hadc1);
+	  HAL_ADC_Stop(&hadc1);
+	}
+float PH_average(uint32_t t, float ph)
+{
+	return (float)(ph/t);
+}
+
+float TDS_average(uint32_t t, float tds)
+{
+	return (float)(tds/t);
+}
+
+uint32_t tim 		= 0;
+uint32_t tong_ph 	= 0;
+uint32_t tong_tds = 0;
+float    PH_t 	= 0;
+float 	TDS_t 	= 0;
 /*=====================================WIFI_CONFIG_End=========================*/
 
 /* USER CODE END 0 */
@@ -495,6 +588,7 @@ int main(void)
   MX_SPI2_Init();
   MX_SPI1_Init();
   MX_I2C3_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
  //=========================================================================  TESTING
 
@@ -502,54 +596,64 @@ int main(void)
  //=========================================================================  CONFIG_MAIN
   HAL_TIM_Base_Start_IT(&htim4);
   HAL_TIM_Base_Start(&htim6);
+
   HAL_UARTEx_ReceiveToIdle_DMA(&huart1,UART1_TEMPBUFFER,SIZEOF_COMMAND);
   __HAL_DMA_DISABLE_IT(&hdma_usart1_rx,DMA_IT_HT);
-
+//
   for(int i =0;i<5;i++)
   {
 	  HAL_GPIO_TogglePin(test_pin_GPIO_Port,test_pin_Pin);
 	  HAL_Delay(200);
   }
-  //HAL_Delay(50);
+  HAL_Delay(50);
   lcd_init();
   Rotary_init();
   lcd_clear();
   W25qxx_Init();
-  HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
+
+//  Save_SetPoint(flash_setpoint);
+//  Save_SetPoint(flash_calibration_tds);
+//  Save_SetPoint(flash_calibration_ph);
   Read_SetPoint(flash_setpoint);
   Read_SetPoint(flash_calibration_tds);
   Read_SetPoint(flash_calibration_ph);
   SD_Handling(SD_Read);
-//  DS1307_config();
-//  DS1307_settime(0, 18, 12, 7, 18, 3, 2023);
-
-  uint32_t time_read = 0;
-
+//  int co = 0;
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
+    while (1)
   {
 	  //=========================================================================  TESTING
 
+
 	  //=========================================================================  CONFIG_MAIN
 	  LCD_Display();
-	  if(time_read == 100)
-	  {
-		  HAL_ADC_Start_DMA(&hadc1,(uint32_t*)ADC_Value, 2);
-		  PH = PH_Calculator(ph_a_value, ph_b_value, ADC_Value[0]);
-		  TDS = TDS_Calculator(tds_k_value, ADC_Value[1]);
-		  Temperature = Get_Temperature_DS18B20();
-		  time_read = 0;
-	  }
-	  DS1307_gettime();
-	  time_read++;
+      get_adc();
+	  PH_t = PH_Calculator(ph_a_value, ph_b_value, ADC_Value[0]);
+	  TDS_t = TDS_Calculator(tds_k_value, ADC_Value[1]);
+	  tong_ph = tong_ph + PH_t;
+	  tong_tds = tong_tds + TDS_t;
+	  tim++;
+      if(tim == 100)
+      {
+//    	  PH = PH_Calculator(ph_a_value, ph_b_value, ADC_Value[0]);
+//    	  TDS = TDS_Calculator(tds_k_value, ADC_Value[1]);
+//    	  Temperature = Get_Temperature_DS18B20();
+    	  PH = PH_average(tim, tong_ph);
+    	  TDS = TDS_average(tim, tong_tds);
+    	  Temperature = Get_Temperature_DS18B20();
+    	  tim = 0;
+    	  tong_ph = 0;
+    	  tong_tds = 0;
+
+      }
+//	  Ring_Buffer_PH[tim] = PH_t;
+//	  Ring_Buffer_TDS[tim] = TDS_t;
+      get_time();
 	  HAL_IWDG_Refresh(&hiwdg);
-
-
-
 
 
 
@@ -646,23 +750,23 @@ static void MX_ADC1_Init(void)
 
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
-  sConfig.Channel = ADC_CHANNEL_0;
-  sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_144CYCLES;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
-  sConfig.Channel = ADC_CHANNEL_1;
-  sConfig.Rank = 2;
-  sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+//  sConfig.Channel = ADC_CHANNEL_0;
+//  sConfig.Rank = 1;
+//  sConfig.SamplingTime = ADC_SAMPLETIME_144CYCLES;
+//  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
+//
+//  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+//  */
+//  sConfig.Channel = ADC_CHANNEL_1;
+//  sConfig.Rank = 2;
+//  sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
+//  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
@@ -762,6 +866,88 @@ static void MX_IWDG_Init(void)
   /* USER CODE BEGIN IWDG_Init 2 */
 
   /* USER CODE END IWDG_Init 2 */
+
+}
+
+/**
+  * @brief RTC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RTC_Init(void)
+{
+
+  /* USER CODE BEGIN RTC_Init 0 */
+
+  /* USER CODE END RTC_Init 0 */
+
+
+  /* USER CODE BEGIN RTC_Init 1 */
+
+  /* USER CODE END RTC_Init 1 */
+
+  /** Initialize RTC Only
+  */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* USER CODE BEGIN Check_RTC_BKUP */
+//  if(HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR1) == 0x2608)
+//  {
+//	  sTime.Hours = 0;
+//	  sTime.Minutes = 24;
+//	  sTime.Seconds = 0x0;
+//	  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+//	  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+//	  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+//	  {
+//	    Error_Handler();
+//	  }
+//	  sDate.WeekDay = RTC_WEEKDAY_WEDNESDAY;
+//	  sDate.Month = RTC_MONTH_MARCH;
+//	  sDate.Date = 0x23;
+//	  sDate.Year = 0x23;
+//
+//	  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
+//	  {
+//	    Error_Handler();
+//	  }
+//	  HAL_RTCEx_BKUPWrite(&hrtc, RTC_BKP_DR1, 0x2608);
+//  }
+  /* USER CODE END Check_RTC_BKUP */
+
+  /** Initialize RTC and set the Time and Date
+  */
+//  sTime.Hours = 0x10;
+//  sTime.Minutes = 0x40;
+//  sTime.Seconds = 0x0;
+//  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+//  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+//  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
+//  sDate.WeekDay = RTC_WEEKDAY_FRIDAY;
+//  sDate.Month = RTC_MONTH_MARCH;
+//  sDate.Date = 0x24;
+//  sDate.Year = 0x23;
+//
+//  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
+  /* USER CODE BEGIN RTC_Init 2 */
+
+  /* USER CODE END RTC_Init 2 */
 
 }
 
@@ -967,9 +1153,6 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
-  /* DMA2_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
   /* DMA2_Stream2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
@@ -986,8 +1169,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();

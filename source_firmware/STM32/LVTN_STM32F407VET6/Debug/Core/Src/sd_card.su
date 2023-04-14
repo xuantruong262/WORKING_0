@@ -1,4 +1,4 @@
 ../Core/Src/sd_card.c:24:6:SD_Handling	16	static
 ../Core/Src/sd_card.c:42:6:SD_Card_Write	16	static
-../Core/Src/sd_card.c:59:6:SD_Card_Read	16	static
-../Core/Src/sd_card.c:68:6:SD_save	224	static
+../Core/Src/sd_card.c:54:6:SD_Card_Read	16	static
+../Core/Src/sd_card.c:63:6:SD_save	224	static

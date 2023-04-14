@@ -16,7 +16,10 @@
 #define MQTT_USER "XuanTruong"
 #define MQTT_PASSWORD "8FEB9F35E8D44666"
 #define MQTT_PORT 1111
-#define Topic_1 "XuanTruong/26022000" 
+#define Topic_1 "XuanTruong/123456789"
+#define Topic_2 "XuanTruong/setpoint" 
+#define Topic_3 "XuanTruong/connection"  
+
 
 
 void setup_wifi();

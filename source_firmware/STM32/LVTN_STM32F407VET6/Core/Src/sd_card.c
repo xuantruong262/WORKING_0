@@ -7,8 +7,8 @@
 
 
 #include"sd_card.h"
-#include "ds1307.h"
-extern DS1307_STRUCT ds1307;
+extern RTC_TimeTypeDef sTime;
+extern RTC_DateTypeDef sDate;
 extern uint8_t save_sd_flag;
 
 
@@ -45,14 +45,9 @@ void SD_Card_Write(char *NameOfFile,  char *Data)
 		f_lseek(&file, f_size(&file));
 		  if (fresult == FR_OK)
 			  {
-			  	  SEND_UART1 ("file is created\n");
 			  	  f_puts(Data, &file);
 			  	  fresult = f_close(&file);
 			  	 }
-		  else
-		  {
-			  SEND_UART1 ("Create file is fail\n");
-		  }
 
 }
 
@@ -68,14 +63,14 @@ void SD_Card_Read(char* NameOfFile, uint8_t *buffer)
 void SD_save(char *my_data)
 {
 
-	if(((ds1307.min)%15) == 0)
+	if(((sTime.Minutes)%15) == 0)
 	{
 		if(save_sd_flag == 0)
 		{
 			char name[100];
 			char data[100];
-			sprintf(name,"%d_%d_%d.txt",ds1307.date,ds1307.month,ds1307.year);
-			sprintf(data,"%d:%d ==>>",ds1307.hour,ds1307.min);
+			sprintf(name,"%d_%d_%d.txt",sDate.Date,sDate.Month,sDate.Year);
+			sprintf(data,"%d:%d ==>>",sTime.Hours,sTime.Minutes);
 			strcat(data,my_data);
 			strcat(data,"\n");
 			SD_Card_Write(name,data);

@@ -10,7 +10,7 @@
 
 #define TX2 
 #define RX2
-#define WDT_TIMEOUT 10
+#define WDT_TIMEOUT 20
 #define test_led 2
 
 String data_receive;
@@ -67,7 +67,7 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFiManager wm;
   bool res;
-  res = wm.autoConnect();
+  res = wm.autoConnect("MyHydroponic","99999999");
   //============================================ EEPROM
   Serial2.begin(115200); 
   // Serial.setTimeout(500);
