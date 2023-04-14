@@ -5,27 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>My Website</title>
-
-
 </head>
 
 <body>
     <h1>Count page</h1>
+    <h2 id="ph"></h2>
+    <h3 id="tds"></h3>
+    <h4 id="temp"></h4>
 
+    <script>
+        var ws = new WebSocket('ws://127.0.0.1:8000/ws/xuantruong/')
+        ws.onopen = function () {
+            console.log('Websocket is open...')
+            ws.send('Hi, Message from Client to Server...')
+        }
+        ws.onmessage = function (event) {
+            var data = JSON.parse(event.data)
+            console.log(event)
+            // console.log(typeof(data))
+            document.getElementById('ph').innerText = data.PH
+            document.getElementById("tds").innerText = data.TDS
+            document.getElementById("temp").innerText = data.TEMP
+        }
+
+        ws.onerror = function (event) {
+        console.log('Websocket is Error...', event)
+         }
+        ws.onclose = function (event) {
+        console.log('Websocket is Close...', event)
+    }
+</script>
     <!-- <script>
-        var ws = new WebSocket('ws://127.0.0.1:8000/ws/sc/')
+        var ws = new WebSocket('ws://127.0.0.1:8000/ws/ac/')
         ws.onopen = function(){
             console.log('Websocket is open...')
+            ws.send('Hi, Message from Client to Server...')
         }
         ws.onmessage = function(event) {
-            console.log('Websocket is open...',event)
+            var data = JSON.parse(event.data)
+            // console.log('DATA',event)
+            // console.log('Websocket is open...',event.data)
+            document.getElementById("ph").innerText=data.PH
+            document.getElementById("tds").innerText=data.TDS
+            document.getElementById("temp").innerText=data.TEMP
         }
 
         ws.onerror =function(event){
             console.log('Websocket is Error...',event)
         }
-
-
+        ws.onclose = function(event){
+            console.log('Websocket is Close...',event)
+        }
 
     </script> -->
 </body>

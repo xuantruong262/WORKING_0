@@ -1,0 +1,31 @@
+{% extends 'home/base.html' %}
+
+{% block about %}
+{% load static %}
+<div class="topic_infor" style="text-align: center; font-family: sans-serif;" >
+    <h1 style="margin-top: 1%;">TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI THÀNH PHỐ HỒ CHÍ MINH</h1>
+    <h2 style="color: black;">KHOA ĐIỆN-ĐIỆN TỬ VIỄN THÔNG</h2>
+    <h2 style="color: black;">CHUYÊN NGÀNH: TỰ ĐỘNG HÓA CÔNG NGHIỆP</h2>
+    <h1 style="color: black; margin-top: 6%; font-size: 200%;">ĐỀ TÀI:THIẾT BỊ THEO DÕI VÀ CUNG CẤP CHẤT DINH DƯỠNG TỰ ĐỘNG CHO HỆ THỐNG THỦY CANH</h1>
+    <h3 style="color: black;">GVHD: Ths: Uông Thanh Phong</h3>
+    <h3 style="color: black; margin-top: 3%;">Sinh viên thực hiện</h3>
+</div>
+
+<div class="member" style="display: flex; font-size: medium; margin-top: 2%;">
+    <div class="xuantruong" style="text-align: center;">
+        <h1>Sinh viên: Vũ Xuân Trường</h1>
+        <h1>MSSV: 1851050088 Lớp: TD18</h1>
+        <img src="{% static "home/icon/xuantruong.png" alt="icon_temperature" %}"
+        style="height: 80%;width: 70%;margin-top: 5%;">
+
+    </div>
+
+    <div class="minhthuan" style="text-align: center;">
+        <h1>Sinh viên: Phạm Nguyễn Minh Thuận</h1>
+        <h1>MSSV: 1851050081 Lớp: TD18</h1>
+        <img src="{% static "home/icon/minhthuan.png" alt="icon_temperature" %}"
+        style="height: 80%;width: 70%;margin-top: 5%;">
+    </div>
+</div>
+
+{% endblock %}

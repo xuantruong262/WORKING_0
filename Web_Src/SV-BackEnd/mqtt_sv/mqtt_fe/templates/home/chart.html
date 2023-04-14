@@ -1,0 +1,66 @@
+{% extends 'home/base.html' %}
+{% block chart %}
+{% load static %}
+
+<div class="my_chart" style="background-color: whitesmoke;">
+    <div class="select_time" style="display: block;">
+        <h1>Decvice ID:123456789</h1>
+        <div class="history_time">
+            <form action="rHistory" method="post" id="rHistory" style="display: flex; margin-top: 1%;">
+                {% csrf_token %}
+                <h2 style="color: black">Date: </h2>
+                <input type="text" name="rDate" placeholder="Date..." /> <br />
+                <input type="text" name="rMonth" placeholder="Month..." /> <br />
+                <input type="text" name="rYear" placeholder="Year..." /> <br />
+                <button type="submit">Confirm</button>
+                <button type="submit">Today</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="chart_display">
+        <div class="PH_chart">
+            <canvas id="ph_canvas" style="height: 100%;"></canvas>
+
+        </div>
+
+
+        <div class="TDS_chart">
+            <canvas id="tds_canvas" style="height: 100%;"></canvas>
+        </div>
+
+        <div class="TEMP_chart">
+            <canvas id="temp_canvas" style="height: 100%;"></canvas>
+        </div>
+    </div>
+    <button onclick="update_chart()"
+        style="width: 50%;min-height: 10%;margin:5% 25%;background-color: dodgerblue;color: azure;border-radius: 2%;">Submit</button>
+</div>]
+
+<!-- <script>
+    var ws = new WebSocket('ws://127.0.0.1:8000/ws/xuantruong/')
+    ws.onopen = function () {
+        console.log('Websocket is open...')
+        ws.send('Hi, Message from Client to Server...')
+    }
+    ws.onmessage = function (event) {
+        let chData = JSON.parse(event.data)
+        console.log('Websocket is open...', chData)
+        var ph_chart_value = chData["PH"];
+         
+        console.log(chData["PH"]);
+        //document.getElementById("ph_canvas").innerText = chData['PH'];
+        //document.getElementById("TDS_value").innerText = chData.TDS
+        //document.getElementById("Temp_value").innerText = chData.TEMP
+        //var ph_chart_value = chData.PH;
+        
+    }
+
+    ws.onerror = function (event) {
+        console.log('Websocket is Error...', event)
+    }
+    ws.onclose = function (event) {
+        console.log('Websocket is Close...', event)
+    }
+</script> -->
+{% endblock %}

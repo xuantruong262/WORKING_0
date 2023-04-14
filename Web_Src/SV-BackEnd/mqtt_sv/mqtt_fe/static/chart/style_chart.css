@@ -1,0 +1,44 @@
+
+.chart{   
+    width: 75%;
+    height: 100%;
+    align-items: center;
+    display: block;
+}
+.chart .my_chart{
+    margin: 2% auto;
+    width: 94%;
+    height: 94%;
+}
+
+                                    /* SELECT_TIME */
+.chart .my_chart .select_time{
+     width: 100%;
+     height: 10%;
+}
+
+
+
+
+
+
+
+
+                                    /* CHART_DISPLAY */
+.chart .my_chart .chart_display{
+    display: block;
+    margin-top: 1%;
+    width: 100%;
+    height: 85%;
+}
+.chart .my_chart .chart_display .PH_chart, .TDS_chart, .TEMP_chart{
+    margin: auto;
+    background-color: white;
+    margin-bottom: 1%;
+    width: 98%;
+    height: 33%;
+    border-radius: 2%/12%;
+}
+#ph_canvas, #tds_canvas, #temp_canvas{
+    width: 100%;
+}

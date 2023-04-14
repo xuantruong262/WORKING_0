@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>My Website</title>
+
+</head>
+    <body>
+        <h1>TESTING CHANNELS</h1>
+        <script type ="text/javascript">
+            let url =`ws://${window.location.host}/ws/socket-server/`
+
+            const mySocket =new WebSocket(url)
+                mySocket.onmessage =function(e){
+                    let data = JSON.parse(e.data)
+                    console.log('Data',data)
+                }
+
+        </script>
+    </body>
+</html>

@@ -1,0 +1,20 @@
+.about{   
+    background-color: whitesmoke;
+    width: 75%;
+    height: 100%;
+
+}
+.member{
+    height: 45%;
+    width: 100%;
+    display: flex;
+}
+.member .xuantruong{
+    height: 100%;
+    width: 50%;
+}
+
+.member .minhthuan{
+    height: 100%;
+    width: 50%;
+}
